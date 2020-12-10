@@ -6,9 +6,22 @@ from Parameter import Parameter
 from urllib import request
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
-from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy
+from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
 from PyQt5.QtCore import Qt
+from test.test_decimal import file
 parameter = Parameter()
+def readGPX():
+    dlg = QFileDialog()
+    dlg.setFileMode(QFileDialog.ExistingFile)
+    if dlg.exec_():
+        filenames = dlg.selectedFiles()
+        for file in filenames:
+            xmldoc = minidom.parse(file)
+            itemlst = xmldoc.getElementsByTagName("trkpt")
+            for item in itemlst:
+                lat = item.attributes['lat'].value
+                lon = item.attributes['lon'].value
+                print(lat,lon)
 def parseOSMXml():
     websiteList = []
     xmldoc = minidom.parse(parameter.getParm("osmxml"))
@@ -224,7 +237,8 @@ class BildPanel(QWidget):
         pan = TilePanel(self.cluster)
         grid=QGridLayout()
         grid.addWidget(pan,0,0)
-        self.setGeometry(0,0,765,765)
+        #self.setGeometry(0,0,765,765)
+        self.setMinimumSize(765,765)
         self.setSizePolicy(QSizePolicy.Fixed,QSizePolicy.Fixed)
         self.setLayout(grid)
         self.alListener = []
@@ -257,6 +271,7 @@ class BildController(QMainWindow):
         self.PrintAction = self.file_menu.addAction("Print to PDF")
         self.DownloadTileAction = self.file_menu.addAction("Download Tile")
         self.ShowWebsitesAction = self.file_menu.addAction("Show Websites")
+        self.ReadGPXAction = self.file_menu.addAction("Read GPX Track")
         self.menu.triggered[QAction].connect(self.triggered)
         self.setMenuBar(self.menu)
     def myprint(self):
@@ -298,6 +313,8 @@ class BildController(QMainWindow):
         if quelle == self.ShowWebsitesAction:
             downloadOSMData(round(self.x),round(self.y),self.z)
             parseOSMXml()
+        if quelle == self.ReadGPXAction:
+            readGPX()
         self.bild = BildPanel(self.x,self.y,self.z)
         self.bild.addMouseListener(self)
         self.setCentralWidget(self.bild)
