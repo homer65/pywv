@@ -11,10 +11,10 @@ from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSi
 from PyQt5.QtCore import Qt
 from test.test_decimal import file
 parameter = Parameter()
-gpxlatlon = []
+gpxtrkpt = []
 def readGPX():
-    global gpxlatlon
-    gpxlatlon = []
+    global gpxtrkpt
+    gpxtrkpt = []
     dlg = QFileDialog()
     dlg.setFileMode(QFileDialog.ExistingFile)
     if dlg.exec_():
@@ -24,9 +24,18 @@ def readGPX():
                 xmldoc = minidom.parse(file)
                 itemlst = xmldoc.getElementsByTagName("trkpt")
                 for item in itemlst:
+                    ele = "0.0"
+                    elevations = item.getElementsByTagName("ele")
+                    for elevation in elevations:
+                        ele = elevation.firstChild.data
+                    tim = ""
+                    times = item.getElementsByTagName("time")
+                    for time in times:
+                        tim = time.firstChild.data
                     lat = item.attributes['lat'].value
                     lon = item.attributes['lon'].value
-                    gpxlatlon.append((float(lat),float(lon)))
+                    gpxtrkpt.append((float(lat),float(lon),ele,tim))
+                    print(lat,lon,ele,tim)
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
@@ -250,7 +259,7 @@ class BildPanel(QWidget):
             color = qRgba(255,0,0,0)
             self.cluster.setPixel(x,y,color)
             
-        for (lat,lon) in gpxlatlon:
+        for (lat,lon,ele,tim) in gpxtrkpt:
             (gpx_x,gpx_y) = calculateXY(lat,lon,z)
             deltay = (gpx_x - self.x + 1.0) * 255.0
             deltax = (gpx_y - self.y + 1.0) * 255.0
