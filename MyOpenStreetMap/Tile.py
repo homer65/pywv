@@ -1,4 +1,5 @@
 import os
+import sys
 import math
 import platform
 from xml.dom import minidom
@@ -18,13 +19,17 @@ def readGPX():
     dlg.setFileMode(QFileDialog.ExistingFile)
     if dlg.exec_():
         filenames = dlg.selectedFiles()
-        for file in filenames:
-            xmldoc = minidom.parse(file)
-            itemlst = xmldoc.getElementsByTagName("trkpt")
-            for item in itemlst:
-                lat = item.attributes['lat'].value
-                lon = item.attributes['lon'].value
-                gpxlatlon.append((float(lat),float(lon)))
+        try:
+            for file in filenames:
+                xmldoc = minidom.parse(file)
+                itemlst = xmldoc.getElementsByTagName("trkpt")
+                for item in itemlst:
+                    lat = item.attributes['lat'].value
+                    lon = item.attributes['lon'].value
+                    gpxlatlon.append((float(lat),float(lon)))
+        except:
+            print(sys.exc_info()[0])
+            print(sys.exc_info()[1])
 def parseOSMXml():
     websiteList = []
     xmldoc = minidom.parse(parameter.getParm("osmxml"))
