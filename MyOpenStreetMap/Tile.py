@@ -13,7 +13,7 @@ parameter = Parameter()
 gpxtrkpt = []
 def readGPX():
     global gpxtrkpt
-    gpxtrkpt = []
+    #gpxtrkpt = []
     dlg = QFileDialog()
     dlg.setFileMode(QFileDialog.ExistingFile)
     if dlg.exec_():
@@ -36,6 +36,41 @@ def readGPX():
                     lon = item.attributes['lon'].value
                     gpxtrkpt.append((float(lat),float(lon),ele,tim))
                     print(lat,lon,ele,tim)
+        except:
+            print(sys.exc_info()[0])
+            print(sys.exc_info()[1])
+def saveGPX():
+    global gpxtrkpt
+    gpxdoc = "<?xml version='1.0' encoding='UTF-8'?>" + "\n"
+    gpxdoc += "<gpx version=\"1.1\" creator=\"http://www.myoggradio.org\"" + "\n"
+    gpxdoc += "xmlns=\"http://www.topografix.com/GPX/1/1\"" + "\n"
+    gpxdoc += "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" + "\n"
+    gpxdoc += "xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1" + "\n"
+    gpxdoc += "http://www.topografix.com/GPX/1/1/gpx.xsd\">"
+    gpxdoc += " <metadata>" + "\n"
+    gpxdoc += "  <name>Ein GPX Track pywv Pre Alpha Test</name>"
+    gpxdoc += " </metadata>" + "\n"
+    gpxdoc += " <trk>" + "\n"
+    gpxdoc += "  <trkseg>" + "\n"
+    for (flat,flon,ele,tim) in gpxtrkpt:
+        lat = str(flat)
+        lon = str(flon)
+        gpxdoc += "   <trkpt lat=\"" + lat + "\" lon=\"" + lon + "\">" + "\n"
+        gpxdoc += "    <ele>" + ele + "</ele>" + "\n"
+        gpxdoc += "    <time>" + tim + "</time>" + "\n"
+        gpxdoc += "   </trkpt>" + "\n"
+    gpxdoc += "  </trkseg>" + "\n"
+    gpxdoc += " </trk>" + "\n"
+    gpxdoc += "</gpx>" + "\n"
+    dlg = QFileDialog()
+    dlg.setFileMode(QFileDialog.AnyFile)
+    if dlg.exec_():
+        filenames = dlg.selectedFiles()
+        try:
+            for file in filenames:
+                datei = open(file,"w")
+                datei.write(gpxdoc)
+                datei.close()
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
@@ -317,6 +352,7 @@ class BildController(QMainWindow):
         self.DownloadTileAction = self.file_menu.addAction("Download Tile")
         self.ShowWebsitesAction = self.file_menu.addAction("Show Websites")
         self.ReadGPXAction = self.file_menu.addAction("Read GPX Track")
+        self.SaveGPXAction = self.file_menu.addAction("Save GPX Track as")
         self.menu.triggered[QAction].connect(self.triggered)
         self.setMenuBar(self.menu)
     def myprint(self):
@@ -360,6 +396,8 @@ class BildController(QMainWindow):
             parseOSMXml()
         if quelle == self.ReadGPXAction:
             readGPX()
+        if quelle == self.SaveGPXAction:
+            saveGPX()
         self.bild = BildPanel(self.x,self.y,self.z)
         self.bild.addMouseListener(self)
         self.setCentralWidget(self.bild)
