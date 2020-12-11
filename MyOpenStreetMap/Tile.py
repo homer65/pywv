@@ -9,7 +9,6 @@ from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
 from PyQt5.QtCore import Qt
-from test.test_decimal import file
 parameter = Parameter()
 gpxtrkpt = []
 def readGPX():
@@ -22,6 +21,7 @@ def readGPX():
         try:
             for file in filenames:
                 xmldoc = minidom.parse(file)
+                #
                 itemlst = xmldoc.getElementsByTagName("trkpt")
                 for item in itemlst:
                     ele = "0.0"
