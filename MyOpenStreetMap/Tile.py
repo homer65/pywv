@@ -10,7 +10,10 @@ from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSi
 from PyQt5.QtCore import Qt
 from test.test_decimal import file
 parameter = Parameter()
+gpxlatlon = []
 def readGPX():
+    global gpxlatlon
+    gpxlatlon = []
     dlg = QFileDialog()
     dlg.setFileMode(QFileDialog.ExistingFile)
     if dlg.exec_():
@@ -21,7 +24,7 @@ def readGPX():
             for item in itemlst:
                 lat = item.attributes['lat'].value
                 lon = item.attributes['lon'].value
-                print(lat,lon)
+                gpxlatlon.append((float(lat),float(lon)))
 def parseOSMXml():
     websiteList = []
     xmldoc = minidom.parse(parameter.getParm("osmxml"))
@@ -82,6 +85,13 @@ def getTile(x,y,z):
     if not os.path.isfile(pfad):
         downloadTile(x,y,z)
     return QImage(pfad)
+def calculateXY(lat,lon,z):
+        fz = 1.0;
+        for i in range(0,z):
+            fz = 2.0 * fz;
+        ytile = (lon + 180) / 360 * fz ;
+        xtile = (1 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2 * fz
+        return (xtile,ytile)
 def calculateLatLon(y,x,z):
     x = float(x)
     y = float(y)
@@ -234,6 +244,27 @@ class BildPanel(QWidget):
             x = 383
             color = qRgba(255,0,0,0)
             self.cluster.setPixel(x,y,color)
+            
+        for (lat,lon) in gpxlatlon:
+            (gpx_x,gpx_y) = calculateXY(lat,lon,z)
+            deltay = (gpx_x - self.x + 1.0) * 255.0
+            deltax = (gpx_y - self.y + 1.0) * 255.0
+            ok = True
+            if deltax < 0.0: ok = False
+            if deltay < 0.0: ok = False
+            if deltax > 765.0: ok = False
+            if deltay > 765.0: ok = False
+            if ok:
+                color = qRgba(255,0,0,0)
+                self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)-1,color)
+                self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)-1,color)
+                self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)-1,color)
+                self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)-0,color)
+                self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)-0,color)
+                self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)-0,color)
+                self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)+1,color)
+                self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)+1,color)
+                self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)+1,color)
         pan = TilePanel(self.cluster)
         grid=QGridLayout()
         grid.addWidget(pan,0,0)
