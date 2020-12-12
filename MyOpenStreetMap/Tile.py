@@ -2,6 +2,7 @@ import os
 import sys
 import math
 import platform
+from datetime import datetime
 from xml.dom import minidom
 from Parameter import Parameter
 from urllib import request
@@ -46,9 +47,9 @@ def saveGPX():
     gpxdoc += "xmlns=\"http://www.topografix.com/GPX/1/1\"" + "\n"
     gpxdoc += "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" + "\n"
     gpxdoc += "xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1" + "\n"
-    gpxdoc += "http://www.topografix.com/GPX/1/1/gpx.xsd\">"
+    gpxdoc += "http://www.topografix.com/GPX/1/1/gpx.xsd\">" + "\n"
     gpxdoc += " <metadata>" + "\n"
-    gpxdoc += "  <name>Ein GPX Track pywv Pre Alpha Test</name>"
+    gpxdoc += "  <name>Ein GPX Track pywv Pre Alpha Test</name>" + "\n"
     gpxdoc += " </metadata>" + "\n"
     gpxdoc += " <trk>" + "\n"
     gpxdoc += "  <trkseg>" + "\n"
@@ -152,6 +153,8 @@ def calculateLatLon(y,x,z):
     lat = pi - 2.0 * pi * (float(y)/float(fz))
     lat = math.sinh(lat)
     lat = math.atan(lat) * 180.0 / pi
+    lat = math.trunc(lat * 1000000.0) / 1000000.0
+    lon = math.trunc(lon * 1000000.0) / 1000000.0
     erg = [lat,lon]
     return erg
 class TilePanel(QWidget):
@@ -335,6 +338,7 @@ class BildController(QMainWindow):
         self.x = x 
         self.y = y 
         self.z = z
+        self.gpxmodus = "normal"
         self.setGeometry(100,100,765,765)
         self.bild = BildPanel(x,y,z)
         self.setCentralWidget(self.bild)
@@ -351,8 +355,11 @@ class BildController(QMainWindow):
         self.PrintAction = self.file_menu.addAction("Print to PDF")
         self.DownloadTileAction = self.file_menu.addAction("Download Tile")
         self.ShowWebsitesAction = self.file_menu.addAction("Show Websites")
-        self.ReadGPXAction = self.file_menu.addAction("Read GPX Track")
-        self.SaveGPXAction = self.file_menu.addAction("Save GPX Track as")
+        self.gpx_menu = self.menu.addMenu("GPX")
+        self.ReadGPXAction = self.gpx_menu.addAction("Read GPX Track")
+        self.SaveGPXAction = self.gpx_menu.addAction("Save GPX Track as")
+        self.normalModusAction = self.gpx_menu.addAction("Set Normal Modus to GPX")
+        self.addPointAction = self.gpx_menu.addAction("Set Add Point Modus to GPX")
         self.menu.triggered[QAction].connect(self.triggered)
         self.setMenuBar(self.menu)
     def myprint(self):
@@ -365,6 +372,10 @@ class BildController(QMainWindow):
         qp.end()
         return
     def triggered(self,quelle):
+        if quelle == self.normalModusAction:
+            self.gpxmodus = "normal"
+        if quelle == self.addPointAction:
+            self.gpxmodus = "addPoint"
         if quelle == self.PrintAction:
             self.myprint()
         if quelle == self.ZoomUpAction:
@@ -421,6 +432,31 @@ class BildController(QMainWindow):
             self.setCentralWidget(self.bild)
             self.update()
         if ev.button() == Qt.RightButton:
-            downloadOSMData(round(self.x),round(self.y),self.z)
-            parseOSMXml()
+            if self.gpxmodus == "addPoint":
+                pos = ev.pos()
+                a = pos.x()
+                b = pos.y()
+                delta = 383 + int(parameter.getParm("adjustment"))
+                deltax = (float(b-delta) / 255.0) 
+                deltay = (float(a-delta) / 255.0)
+                print(">>>",a,b)
+                self.x = float(self.x) + deltax
+                self.y = float(self.y) + deltay
+                print(self.x+0.5,self.y+0.5,self.z)
+                (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.z)
+                ele = "0.0"
+                tim = datetime.today().isoformat()
+                worte = tim.split(".")
+                worte[-1] = "000Z"
+                tim = worte[0]
+                for wort in worte:
+                    if wort != worte[0]:
+                        tim = tim + "." + wort
+                gpxtrkpt.append((lat,lon,ele,tim))
+                self.bild = BildPanel(self.x,self.y,self.z)
+                self.bild.addMouseListener(self)
+                self.setCentralWidget(self.bild)
+                self.update()
+            #downloadOSMData(round(self.x),round(self.y),self.z)
+            #parseOSMXml()
         return
