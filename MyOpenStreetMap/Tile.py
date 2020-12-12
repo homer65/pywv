@@ -10,6 +10,7 @@ from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
 from PyQt5.QtCore import Qt
+from numpy.compat.py3k import long
 parameter = Parameter()
 gpxtrkpt = []
 def readGPX():
@@ -339,6 +340,8 @@ class BildController(QMainWindow):
         self.y = y 
         self.z = z
         self.gpxmodus = "normal"
+        self.gpxDeletePoint1 = (0.0,0.0)
+        self.gpxDeletePoint2 = (0.0,0.0)
         self.setGeometry(100,100,765,765)
         self.bild = BildPanel(x,y,z)
         self.setCentralWidget(self.bild)
@@ -360,6 +363,7 @@ class BildController(QMainWindow):
         self.SaveGPXAction = self.gpx_menu.addAction("Save GPX Track as")
         self.normalModusAction = self.gpx_menu.addAction("Set Normal Modus to GPX")
         self.addPointAction = self.gpx_menu.addAction("Set Add Point Modus to GPX")
+        self.deleteRectangleAction = self.gpx_menu.addAction("Set Delete Rectangle Modus from GPX")
         self.menu.triggered[QAction].connect(self.triggered)
         self.setMenuBar(self.menu)
     def myprint(self):
@@ -376,6 +380,10 @@ class BildController(QMainWindow):
             self.gpxmodus = "normal"
         if quelle == self.addPointAction:
             self.gpxmodus = "addPoint"
+        if quelle == self.deleteRectangleAction:
+            self.gpxmodus = "deleteRectangle"
+            self.gpxDeletePoint1 = (0.0,0.0)
+            self.gpxDeletePoint2 = (0.0,0.0)
         if quelle == self.PrintAction:
             self.myprint()
         if quelle == self.ZoomUpAction:
@@ -415,6 +423,7 @@ class BildController(QMainWindow):
         self.update()
         return
     def mousePressed(self,ev):
+        global gpxtrkpt
         if ev.button() == Qt.LeftButton:
             pos = ev.pos()
             a = pos.x()
@@ -453,6 +462,51 @@ class BildController(QMainWindow):
                     if wort != worte[0]:
                         tim = tim + "." + wort
                 gpxtrkpt.append((lat,lon,ele,tim))
+                self.bild = BildPanel(self.x,self.y,self.z)
+                self.bild.addMouseListener(self)
+                self.setCentralWidget(self.bild)
+                self.update()
+            if self.gpxmodus == "deleteRectangle":
+                pos = ev.pos()
+                a = pos.x()
+                b = pos.y()
+                delta = 383 + int(parameter.getParm("adjustment"))
+                deltax = (float(b-delta) / 255.0) 
+                deltay = (float(a-delta) / 255.0)
+                print(">>>",a,b)
+                self.x = float(self.x) + deltax
+                self.y = float(self.y) + deltay
+                print(self.x+0.5,self.y+0.5,self.z)
+                (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.z)
+                if self.gpxDeletePoint1 == (0.0,0.0):
+                    self.gpxDeletePoint1 = (lat,lon)
+                else:
+                    self.gpxDeletePoint2 = (lat,lon)
+                    (lat1,lon1) = self.gpxDeletePoint1
+                    (lat2,lon2) = self.gpxDeletePoint2
+                    if (lat1 > lat2):
+                        lat3 = lat2
+                        lat2 = lat1
+                        lat1 = lat3
+                    if (lon1 > lon2):
+                        lon3 = lon2
+                        lon2 = lon1
+                        lon1 = lon3
+                    newgpxtrkpt = []
+                    for trkpt in gpxtrkpt:
+                        lat = trkpt[0]
+                        lon = trkpt[1]
+                        inRectangle = True
+                        if lat < lat1: inRectangle = False
+                        if lat > lat2: inRectangle = False
+                        if lon < lon1: inRectangle = False
+                        if lon > lon2: inRectangle = False
+                        if inRectangle:
+                            pass
+                        else:
+                            newgpxtrkpt.append(trkpt)
+                    gpxtrkpt = newgpxtrkpt
+                    self.gpxmodus = "normal"
                 self.bild = BildPanel(self.x,self.y,self.z)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
