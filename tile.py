@@ -140,12 +140,12 @@ def getTile(x,y,z,parameter):
     return QImage(pfad)
 
 def calculateXY(lat,lon,z):
-        fz = 1.0;
-        for i in range(0,z):
-            fz = 2.0 * fz;
-        ytile = (lon + 180) / 360 * fz ;
-        xtile = (1 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2 * fz
-        return (xtile,ytile)
+    fz = 1.0;
+    for i in range(0,z):
+        fz = 2.0 * fz;
+    ytile = (lon + 180) / 360 * fz ;
+    xtile = (1 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2 * fz
+    return (xtile,ytile)
     
 def calculateLatLon(y,x,z):
     x = float(x)
