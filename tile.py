@@ -66,9 +66,8 @@ def saveGPX(gpxtrkpt):
         filenames = dlg.selectedFiles()
         try:
             for file in filenames:
-                datei = open(file,"w")
-                datei.write(gpxdoc)
-                datei.close()
+                with open(file,"w") as datei:
+                    datei.write(gpxdoc)
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])

@@ -4,19 +4,18 @@ from PyQt5.QtWidgets import QApplication
 
 def init(pfad,parameter):
     print(pfad)
-    f = open(pfad,"r")
-    for zeile in f:
-        satz = zeile[:-1] 
-        worte = satz.split("=")
-        if len(worte) > 1:
-            key = worte[0]
-            wert = worte[1]
-            if key == "x":
-                wert = str(float(wert) - 0.5)
-            if key == "y":
-                wert = str(float(wert) - 0.5)
-            parameter[key] = wert
-    f.close()
+    with open(pfad,"r") as f:
+        for zeile in f:
+            satz = zeile[:-1] 
+            worte = satz.split("=")
+            if len(worte) > 1:
+                key = worte[0]
+                wert = worte[1]
+                if key == "x":
+                    wert = str(float(wert) - 0.5)
+                if key == "y":
+                    wert = str(float(wert) - 0.5)
+                parameter[key] = wert
     return parameter
 
 def main():
