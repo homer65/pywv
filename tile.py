@@ -134,7 +134,8 @@ def downloadTile(x,y,z,parameter):
         f.write(inhalt)
 
 def getTile(x,y,z,parameter):
-    pfad = parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png"
+    pfad = os.path.join(parameter["tileCache"],"tile."+x+"."+y+"."+z+".png")
+    #pfad = parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png"
     if not os.path.isfile(pfad):
         downloadTile(x,y,z,parameter)
     return QImage(pfad)
