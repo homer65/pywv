@@ -10,11 +10,8 @@ from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
 from PyQt5.QtCore import Qt
 
-gpxtrkpt = []
-
 def readGPX():
-    global gpxtrkpt
-    #gpxtrkpt = []
+    gpxtrkpt = []
     dlg = QFileDialog()
     dlg.setFileMode(QFileDialog.ExistingFile)
     if dlg.exec_():
@@ -36,13 +33,12 @@ def readGPX():
                     lat = item.attributes['lat'].value
                     lon = item.attributes['lon'].value
                     gpxtrkpt.append((float(lat),float(lon),ele,tim))
-                    print(lat,lon,ele,tim)
+                    #print(lat,lon,ele,tim)
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
-            
-def saveGPX():
-    global gpxtrkpt
+    return gpxtrkpt        
+def saveGPX(gpxtrkpt):
     gpxdoc = "<?xml version='1.0' encoding='UTF-8'?>" + "\n"
     gpxdoc += "<gpx version=\"1.1\" creator=\"http://www.myoggradio.org\"" + "\n"
     gpxdoc += "xmlns=\"http://www.topografix.com/GPX/1/1\"" + "\n"
@@ -183,10 +179,11 @@ class TilePanel(QWidget):
     
 class BildPanel(QWidget):
     
-    def __init__(self,x,y,z,parameter):
+    def __init__(self,x,y,z,parameter,gpxtrkpt):
         self.x = x
         self.y = y
         self.z = z
+        self.gpxtrkpt = gpxtrkpt
         x = math.trunc(x) 
         y = math.trunc(y)
         self.p = math.trunc((self.x - x) * 255.0)
@@ -305,27 +302,30 @@ class BildPanel(QWidget):
             x = 383
             color = qRgba(255,0,0,0)
             self.cluster.setPixel(x,y,color)
-            
-        for (lat,lon,ele,tim) in gpxtrkpt:
-            (gpx_x,gpx_y) = calculateXY(lat,lon,z)
-            deltay = (gpx_x - self.x + 1.0) * 255.0
-            deltax = (gpx_y - self.y + 1.0) * 255.0
-            ok = True
-            if deltax < 0.0: ok = False
-            if deltay < 0.0: ok = False
-            if deltax > 765.0: ok = False
-            if deltay > 765.0: ok = False
-            if ok:
-                color = qRgba(255,0,0,0)
-                self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)-1,color)
-                self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)-1,color)
-                self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)-1,color)
-                self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)-0,color)
-                self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)-0,color)
-                self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)-0,color)
-                self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)+1,color)
-                self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)+1,color)
-                self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)+1,color)
+        if len(self.gpxtrkpt) > 0:
+            for trkpt in self.gpxtrkpt:
+                lat = trkpt[0]
+                lon = trkpt[1]
+                # print(lat,lon)
+                (gpx_x,gpx_y) = calculateXY(lat,lon,z)
+                deltay = (gpx_x - self.x + 1.0) * 255.0
+                deltax = (gpx_y - self.y + 1.0) * 255.0
+                ok = True
+                if deltax < 0.0: ok = False
+                if deltay < 0.0: ok = False
+                if deltax > 765.0: ok = False
+                if deltay > 765.0: ok = False
+                if ok:
+                    color = qRgba(255,0,0,0)
+                    self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)-1,color)
+                    self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)-1,color)
+                    self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)-1,color)
+                    self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)-0,color)
+                    self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)-0,color)
+                    self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)-0,color)
+                    self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)+1,color)
+                    self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)+1,color)
+                    self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)+1,color)
         pan = TilePanel(self.cluster)
         grid=QGridLayout()
         grid.addWidget(pan,0,0)
@@ -351,11 +351,12 @@ class BildController(QMainWindow):
         self.y = y 
         self.z = z
         self.parameter = parameter
+        self.gpxtrkpt = []
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0)
         self.gpxDeletePoint2 = (0.0,0.0)
         self.setGeometry(100,100,765,765)
-        self.bild = BildPanel(x,y,z,parameter)
+        self.bild = BildPanel(x,y,z,parameter,self.gpxtrkpt)
         self.setCentralWidget(self.bild)
         self.bild.addMouseListener(self)
         self.menu = QMenuBar()
@@ -427,16 +428,17 @@ class BildController(QMainWindow):
             downloadOSMData(round(self.x),round(self.y),self.z,self.parameter)
             parseOSMXml(self.parameter)
         if quelle == self.ReadGPXAction:
-            readGPX()
+            newgpxtrkpt = readGPX()
+            for trkpt in newgpxtrkpt:
+                self.gpxtrkpt.append(trkpt)
         if quelle == self.SaveGPXAction:
-            saveGPX()
-        self.bild = BildPanel(self.x,self.y,self.z,self.parameter)
+            saveGPX(self.gpxtrkpt)
+        self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrkpt)
         self.bild.addMouseListener(self)
         self.setCentralWidget(self.bild)
         self.update()
     
     def mousePressed(self,ev):
-        global gpxtrkpt
         if ev.button() == Qt.LeftButton:
             pos = ev.pos()
             a = pos.x()
@@ -449,7 +451,7 @@ class BildController(QMainWindow):
             self.y = float(self.y) + deltay
             print(self.x+0.5,self.y+0.5,self.z)
             print(calculateLatLon(self.x+0.5,self.y+0.5,self.z))
-            self.bild = BildPanel(self.x,self.y,self.z,self.parameter)
+            self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrkpt)
             self.bild.addMouseListener(self)
             self.setCentralWidget(self.bild)
             self.update()
@@ -474,8 +476,8 @@ class BildController(QMainWindow):
                 for wort in worte:
                     if wort != worte[0]:
                         tim = tim + "." + wort
-                gpxtrkpt.append((lat,lon,ele,tim))
-                self.bild = BildPanel(self.x,self.y,self.z,self.parameter)
+                self.gpxtrkpt.append((lat,lon,ele,tim))
+                self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrkpt)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
@@ -506,7 +508,7 @@ class BildController(QMainWindow):
                         lon2 = lon1
                         lon1 = lon3
                     newgpxtrkpt = []
-                    for trkpt in gpxtrkpt:
+                    for trkpt in self.gpxtrkpt:
                         lat = trkpt[0]
                         lon = trkpt[1]
                         inRectangle = True
@@ -518,9 +520,9 @@ class BildController(QMainWindow):
                             pass
                         else:
                             newgpxtrkpt.append(trkpt)
-                    gpxtrkpt = newgpxtrkpt
+                    self.gpxtrkpt = newgpxtrkpt
                     self.gpxmodus = "normal"
-                self.bild = BildPanel(self.x,self.y,self.z,self.parameter)
+                self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrkpt)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
