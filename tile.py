@@ -120,7 +120,8 @@ def downloadOSMData(x,y,z,parameter):
     sUrl = "https://api.openstreetmap.org/api/0.6/map?bbox="+minlon+","+minlat+","+maxlon+","+maxlat
     rc = request.urlopen(sUrl)
     inhalt = rc.read()
-    open(parameter["osmxml"], 'wb').write(inhalt)
+    with open(parameter["osmxml"],"wb") as f:
+        f.write(inhalt)
     
 def downloadTile(x,y,z,parameter):
     sUrl = "https://tile.thunderforest.com/cycle/"+z+"/"+y+"/"+x+".png?apikey="+parameter["apiKey"]
@@ -128,7 +129,9 @@ def downloadTile(x,y,z,parameter):
     rc = request.urlopen(sUrl)
     print(rc.code)
     inhalt = rc.read()
-    open(parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png", 'wb').write(inhalt)
+    tileFileName = os.path.join(parameter["tileCache"],"tile."+x+"."+y+"."+z+".png")
+    with open(tileFileName,"wb") as f:
+        f.write(inhalt)
 
 def getTile(x,y,z,parameter):
     pfad = parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png"
