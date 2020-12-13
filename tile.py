@@ -37,7 +37,8 @@ def readGPX():
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
-    return gpxtrkpt        
+    return gpxtrkpt
+        
 def saveGPX(gpxtrkpt):
     gpxdoc = "<?xml version='1.0' encoding='UTF-8'?>" + "\n"
     gpxdoc += "<gpx version=\"1.1\" creator=\"http://www.myoggradio.org\"" + "\n"
@@ -190,86 +191,20 @@ class BildPanel(QWidget):
         QWidget.__init__(self)
         self.cluster = QImage(765,765,QImage.Format_RGB32)
         temp = QImage(1020,1020,QImage.Format_RGB32)
-        tile1 = getTile(str(x-1),str(y-1),str(z),parameter)
-        tile2 = getTile(str(x),str(y-1),str(z),parameter)
-        tile3 = getTile(str(x+1),str(y-1),str(z),parameter)
-        tile4 = getTile(str(x+2),str(y-1),str(z),parameter)
-        tile5 = getTile(str(x-1),str(y),str(z),parameter)
-        tile6 = getTile(str(x),str(y),str(z),parameter)
-        tile7 = getTile(str(x+1),str(y),str(z),parameter)
-        tile8 = getTile(str(x+2),str(y),str(z),parameter)
-        tile9 = getTile(str(x-1),str(y+1),str(z),parameter)
-        tile10 = getTile(str(x),str(y+1),str(z),parameter)
-        tile11 = getTile(str(x+1),str(y+1),str(z),parameter)
-        tile12 = getTile(str(x+2),str(y+1),str(z),parameter)
-        tile13 = getTile(str(x-1),str(y+2),str(z),parameter)
-        tile14 = getTile(str(x),str(y+2),str(z),parameter)
-        tile15 = getTile(str(x+1),str(y+2),str(z),parameter)
-        tile16 = getTile(str(x+2),str(y+2),str(z),parameter)       
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile1.pixel(x,y)
-                temp.setPixel(x,y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile2.pixel(x,y)
-                temp.setPixel(x,255+y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile3.pixel(x,y)
-                temp.setPixel(x,510+y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile4.pixel(x,y)
-                temp.setPixel(x,765+y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile5.pixel(x,y)
-                temp.setPixel(255+x,y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile6.pixel(x,y)
-                temp.setPixel(255+x,255+y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile7.pixel(x,y)
-                temp.setPixel(255+x,510+y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile8.pixel(x,y)
-                temp.setPixel(255+x,765+y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile9.pixel(x,y)
-                temp.setPixel(510+x,y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile10.pixel(x,y)
-                temp.setPixel(510+x,255+y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile11.pixel(x,y)
-                temp.setPixel(510+x,510+y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile12.pixel(x,y)
-                temp.setPixel(510+x,765+y,color)                
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile13.pixel(x,y)
-                temp.setPixel(765+x,y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile14.pixel(x,y)
-                temp.setPixel(765+x,255+y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile15.pixel(x,y)
-                temp.setPixel(765+x,510+y,color)
-        for x in range(0,255):
-            for y in range(0,255):
-                color = tile16.pixel(x,y)
-                temp.setPixel(765+x,765+y,color) 
+        tiles = []
+        for i in range(0,4):
+            tiles1 = []
+            for j in range(0,4):
+                tile = getTile(str(x-1+j),str(y-1+i),str(z),parameter)
+                tiles1.append(tile)
+            tiles.append(tiles1)
+        for i in range(0,4):
+            for j in range(0,4):
+                tile = tiles[i][j] 
+                for a in range(0,255):
+                    for b in range(0,255):
+                        color = tile.pixel(a,b)
+                        temp.setPixel(i*255+a,j*255+b,color) 
         color = qRgba(0,255,0,0)
         x = 255
         for y in range(0,1020):
