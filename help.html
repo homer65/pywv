@@ -1,0 +1,87 @@
+<html>
+<body>
+<h1>pywv</h1>
+<h3>Einleitung</h3>
+<p>Diese Hilfe beschreibt das Projekt pywv.</p>
+<p>pvwv ist eine in der Programmiersprache Python erstellte Anwendung.</p>
+<p>Es wird eine Landkarte angezeigt, die mit einer einfachen Navigation versehen ist.</p>
+<p>Zu der Landkarte kann ein oder mehrere GPX Track(s) geladen und angezeigt werden.
+   Es ist m&ouml;glich die GPX Tracks zu editieren und abzuspeichern.</p>
+<p>Eine weiter M&ouml;glichkeit die pywv bietet ist es in OpenStreetMap eingetragene Webseiten anzuzeigen.</p>
+<h3>Navigation</h3>
+<p>Die Karte kann auf zwei Art und Weisen bewegt werden. (1) Durch das Menu Position (2) Durch einen Linksklick auf die Karte.</p>
+<p>Mit einem Linksklick auf einen Punkt der Karte macht man diesen Punkt zur Mitte der dargestellten Karte.</p>
+<p>Das Menu Position hat einige Unterpunkte.</p>
+<ul>
+ <li> Zoom Up : Hier wird die Zoom Stufe um eins erniedrigt</li>
+ <li> Zoom Down : Hier wird die Zoom Stufe um eins erh&ouml;ht</li>
+ <li> West : Die Karte wird nach Westen bewegt</li>
+ <li> East : Die Karte wird nach Osten bewegt</li>
+ <li> North : Die Karte wird nach Norden bewegt</li>
+ <li> South : Die Karte wird nach S&uuml;den bewegt</li>
+</ul>
+<h3> File Menu </h3>
+<p> Das File Menu bietet drei Unterpunkte. </p>
+<ul>
+ <li> Print to PDF : Die Karte wird in ein PDF gedruckt</li>
+ <li> Download Tile : Es werden Kacheln nachgeladen</li>
+ <li> Show Websites : Zeigt in OpenStreetMap eingetragene Webseiten an</li>
+</ul>
+<p>Dazu noch ein paar Bemerkungen.</p>
+<p>Der Name des PDF in das gedruckt wird kann in den Einstellungen vorgenommen werden.</p>
+<p>Die Karte besteht aus Kacheln, die von <a href="https://www.thunderforest.com/">https://www.thunderforest.com/</a>
+   heruntergeladen werden. Diese Kacheln werden gecacht. Das hei&szlig;t sobald eine Kachel einmal heruntergeladen wurde
+   befindet sie sich auf der Festplatte und braucht nicht nochmal heruntergeladen zu werden. Ist so eine Kachel fehlerhaft, 
+   kann sie mit dem Menu Unterpunkt - Download Tile - nocheinmal nachgeladen werden.</p>
+<p>Show Webseites lädt OpenStreetMap Daten in einer kleinen Umgebung vom Kartenmittelpunkt herunter und extrahiert daraus 
+   alle eingetragenen Webseiten. Dies werden in einer Liste im Webbrowser anzeigt und k&ouml;nnen von da aus angezeigt werden.</p>
+<h3> GPX Menu</h3>
+<p>Das GPX Menu beinhaltet die Unterpunkte zum Anzeigen, Bearbeiten und Abspeichern von GPX Tracks.</p>
+<ul>
+ <li>Read GPX Track : Liest einen GPX Track ein</li>
+ <li>Save GPX Track as : Speichert den GPX Track ab</li>
+ <li>Set Normal Modus to GPX</li>
+ <li>Set Add Point Modus to GPX</li>
+ <li>Set Delete Rectangle Modus from GPX</li>
+ </ul>
+ <p>Dazu auch hier Bemerkungen.</p>
+ <p>Ein eingelesener GPX Track wird automatisch zu allen bisher eingelesenen und bearbeiteten GPX Tracks hinzugefügt. 
+    Bereits vorhandene GPX Tracks werden nicht überschrieben.</p>
+ <p>Beim abspeichern eines GPX Tracks gehen dessen Meta Informationen verloren. Lediglich die Track Points werden abgespeichert.</p>
+ <p>Set Normal Modus to GPX - Beendet das Editieren des GPX Tracks. Dieser wird nun nur angezeigt.</p>
+ <p>Set Add Point Modus to GPX - Ab jetzt wird durch jeden Rechtsklick auf die Landkarte 
+    der zugeh&ouml;rige Punkt dem GPX Track hinzugef&uuml;gt. Der Punkt bekommt die aktuelle Uhrzeit und die H&ouml;he 0.0.</p>
+ <p>Set Delete Rectangle Modus - Ab jetzt haben die beiden folgenden Rechtsklicks auf die Karte eine Bedeutung.
+    Der erste Rechtsklick setzt eine Ecke eines Rechtecks. Der zweite die entgegengesetzte Ecke des Rechtecks.
+    Damit ist ein Rechteck ausgew&auml;hlt. Alle Track Points des GPX Tracks, die sich in diesem Rechteck befinden
+    werden gel&ouml;scht. Das Editieren des GPX Tracks wird anschlie&szlig;end beendet.</p>
+    
+</ul>
+<h3> Einstellungen </h3>
+<p>Alle Einstellungen werden &uuml;ber eine ini Datei vorgenommen. run.ini unter Windows und runLinux.ini unter Linux.</p>
+<p>Die ini Datei besteht aus einzelnen Zeilen. Das Format einer Zeile ist: ParameterName=ParameterWert=.
+   Dabei gibt es folgende ParameterNamen:</p>
+<ul>
+ <li>temphtml</li>
+ <li>osmxml</li>
+ <li>pdfFile</li>
+ <li>tileCache</li>
+ <li>x</li>
+ <li>y</li>
+ <li>z</li>
+ <li>adjustment</li>
+ <li>apiKey</li>
+</ul> 
+<p>Die Parameter werden nun im Folgenden beschrieben</p>
+<p>temphtml - Ist der Name einer Datei in dem pywv tempor&auml;r Links zu Webseiten abspeichert.</p>
+<p>osmxml - Ebenfalls ein Dateiname. Hier werden von OpenStreetMap heruntergeladene XML Daten gespeichert.</p>
+<p>pdfFile - Das PDF in dem eine Karte als PDF gedruckt werden kann.</p>
+<p>tileCache - Eine wichtige Einstellung. Es wird ein Ordner angegeben in dem pywv heruntergeladene Kachel zwischenspeichert.
+   Dieser Ordner kann im Laufe der Zeit eine gro&szlig;e Menge an Dateien beinhalten.</p>
+<p>x,y,z - gibt den Ort an, der sich zu Anfang der Darstellung im Kartenmittelpunkt befindet.</p>
+<p>adjustment - Interne Einstellung sollte normalerweise nicht ver&auml;ndert werden.</p>
+<p>apiKey - Um Kacheln von Thunderforest herunterzuladen ben&ouml;tigt man einen apikey. Der per Default eingetragene apikey 
+   ist nur ein Test apikey. Das bedeutet mit ihm k&ouml;nnen maximal 150000 Kachel pro Monat heruntergeladen werden.
+   Wenn Sie gefallen an pywv finden und Sie diesen h&auml;ufig nutzen, bitte ich Sie sich einen eigenen apikey zu besorgen.</p>
+</body
+</html>
