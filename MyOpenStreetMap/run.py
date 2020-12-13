@@ -1,6 +1,6 @@
 import sys
-from MyOpenStreetMap.Parameter import Parameter
-from MyOpenStreetMap.Tile import BildController
+from MyOpenStreetMap.parameter import Parameter
+from MyOpenStreetMap.tile import BildController
 from PyQt5.QtWidgets import QApplication
 
 parameter = Parameter()

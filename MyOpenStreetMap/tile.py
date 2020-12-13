@@ -4,7 +4,7 @@ import math
 import platform
 from datetime import datetime
 from xml.dom import minidom
-from MyOpenStreetMap.Parameter import Parameter
+from MyOpenStreetMap.parameter import Parameter
 from urllib import request
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
