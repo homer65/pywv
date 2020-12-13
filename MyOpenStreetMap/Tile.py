@@ -4,15 +4,17 @@ import math
 import platform
 from datetime import datetime
 from xml.dom import minidom
-from Parameter import Parameter
+from MyOpenStreetMap.Parameter import Parameter
 from urllib import request
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
 from PyQt5.QtCore import Qt
 from numpy.compat.py3k import long
+
 parameter = Parameter()
 gpxtrkpt = []
+
 def readGPX():
     global gpxtrkpt
     #gpxtrkpt = []
@@ -41,6 +43,7 @@ def readGPX():
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
+            
 def saveGPX():
     global gpxtrkpt
     gpxdoc = "<?xml version='1.0' encoding='UTF-8'?>" + "\n"
@@ -76,6 +79,7 @@ def saveGPX():
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
+            
 def parseOSMXml():
     websiteList = []
     xmldoc = minidom.parse(parameter.getParm("osmxml"))
@@ -111,6 +115,7 @@ def parseOSMXml():
         cmd = "start " + parameter.getParm("temphtml")
     erg = os.system(cmd)
     print(erg)
+    
 def downloadOSMData(x,y,z):
     latlon = calculateLatLon(x+0.5,y+0.5,z)
     lat = latlon[0]
@@ -123,6 +128,7 @@ def downloadOSMData(x,y,z):
     rc = request.urlopen(sUrl)
     inhalt = rc.read()
     open(parameter.getParm("osmxml"), 'wb').write(inhalt)
+    
 def downloadTile(x,y,z):
     sUrl = "https://tile.thunderforest.com/cycle/"+z+"/"+y+"/"+x+".png?apikey="+parameter.getParm("apiKey")
     #print(sUrl)
@@ -131,11 +137,13 @@ def downloadTile(x,y,z):
     inhalt = rc.read()
     open(parameter.getParm("tileCache") + "\\tile."+x+"."+y+"."+z+".png", 'wb').write(inhalt)
     return
+
 def getTile(x,y,z):
     pfad = parameter.getParm("tileCache") + "\\tile."+x+"."+y+"."+z+".png"
     if not os.path.isfile(pfad):
         downloadTile(x,y,z)
     return QImage(pfad)
+
 def calculateXY(lat,lon,z):
         fz = 1.0;
         for i in range(0,z):
@@ -143,6 +151,7 @@ def calculateXY(lat,lon,z):
         ytile = (lon + 180) / 360 * fz ;
         xtile = (1 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2 * fz
         return (xtile,ytile)
+    
 def calculateLatLon(y,x,z):
     x = float(x)
     y = float(y)
@@ -158,7 +167,10 @@ def calculateLatLon(y,x,z):
     lon = math.trunc(lon * 1000000.0) / 1000000.0
     erg = [lat,lon]
     return erg
+
+
 class TilePanel(QWidget):
+    
     def __init__(self,image):
         QWidget.__init__(self)
         self.image = image
@@ -166,13 +178,17 @@ class TilePanel(QWidget):
         height = self.image.height()
         self.setGeometry(100,100,width,height)
         return
+    
     def paintEvent(self,event):
         qp = QPainter()
         qp.begin(self)
         qp.drawPixmap(0,0,QPixmap.fromImage(self.image))
         qp.end()
         return
+    
+    
 class BildPanel(QWidget):
+    
     def __init__(self,x,y,z):
         self.x = x
         self.y = y
@@ -264,7 +280,6 @@ class BildPanel(QWidget):
             for y in range(0,255):
                 color = tile16.pixel(x,y)
                 temp.setPixel(765+x,765+y,color) 
-
         color = qRgba(0,255,0,0)
         x = 255
         for y in range(0,1020):
@@ -284,7 +299,6 @@ class BildPanel(QWidget):
         y = 765
         for x in range(0,1020):
             temp.setPixel(x,y,1020)
-            
         for x in range(0,765):
             for y in range(0,765):
                 color = temp.pixel(x+self.q,y+self.p) 
@@ -326,14 +340,19 @@ class BildPanel(QWidget):
         self.setSizePolicy(QSizePolicy.Fixed,QSizePolicy.Fixed)
         self.setLayout(grid)
         self.alListener = []
+        
     def mousePressEvent(self,ev):
         for listener in self.alListener:
             listener.mousePressed(ev)
         return
+    
     def addMouseListener(self,listener):
         self.alListener.append(listener)
         return
+    
+    
 class BildController(QMainWindow):
+    
     def __init__(self,x,y,z):
         QMainWindow.__init__(self)
         self.x = x 
@@ -366,6 +385,7 @@ class BildController(QMainWindow):
         self.deleteRectangleAction = self.gpx_menu.addAction("Set Delete Rectangle Modus from GPX")
         self.menu.triggered[QAction].connect(self.triggered)
         self.setMenuBar(self.menu)
+        
     def myprint(self):
         printer = QPrinter()
         printer.setOutputFormat(QPrinter.PdfFormat)
@@ -375,6 +395,7 @@ class BildController(QMainWindow):
         qp.drawPixmap(0,0,QPixmap.fromImage(self.bild.cluster))
         qp.end()
         return
+    
     def triggered(self,quelle):
         if quelle == self.normalModusAction:
             self.gpxmodus = "normal"
@@ -422,6 +443,7 @@ class BildController(QMainWindow):
         self.setCentralWidget(self.bild)
         self.update()
         return
+    
     def mousePressed(self,ev):
         global gpxtrkpt
         if ev.button() == Qt.LeftButton:
@@ -511,6 +533,5 @@ class BildController(QMainWindow):
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
-            #downloadOSMData(round(self.x),round(self.y),self.z)
-            #parseOSMXml()
         return
+    

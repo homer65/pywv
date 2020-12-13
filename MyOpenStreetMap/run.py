@@ -1,8 +1,10 @@
 import sys
-from Parameter import Parameter
-from Tile import BildController
+from MyOpenStreetMap.Parameter import Parameter
+from MyOpenStreetMap.Tile import BildController
 from PyQt5.QtWidgets import QApplication
+
 parameter = Parameter()
+
 def myinit(pfad):
     print(pfad)
     f = open(pfad,"r")
@@ -20,6 +22,7 @@ def myinit(pfad):
         #print(satz)
     f.close()
     return
+
 app = QApplication(sys.argv)
 parameter.setParm("temphtml","C:\\Downloads\\MyOpenStreetMap.html")
 parameter.setParm("osmxml","C:\\Downloads\\MyOpenStreetMap.xml")

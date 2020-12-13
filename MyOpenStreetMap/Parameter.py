@@ -1,10 +1,13 @@
 class Parameter():
-    parms = {}
+    parms = {}   
+    
     def __init__(self):
-        return
+        return   
+     
     def setParm(self,key,wert):
         self.parms[key] = wert
-        return
+        return  
+      
     def getParm(self,key):
         return self.parms[key]
         
