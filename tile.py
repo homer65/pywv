@@ -9,7 +9,6 @@ from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
 from PyQt5.QtCore import Qt
-from numpy.compat.py3k import long
 
 def readGPX():
     gpxtrkpt = []
