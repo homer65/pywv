@@ -9,6 +9,7 @@ from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
 from PyQt5.QtCore import Qt
+from numpy.compat.py3k import long
 
 def readGPX():
     gpxtrkpt = []
@@ -308,6 +309,7 @@ class BildController(QMainWindow):
         self.gpx_menu = self.menu.addMenu("GPX")
         self.ReadGPXAction = self.gpx_menu.addAction("Read GPX Track")
         self.SaveGPXAction = self.gpx_menu.addAction("Save GPX Track as")
+        self.PositionToGPXAction = self.gpx_menu.addAction("Position to GPX Track")
         self.normalModusAction = self.gpx_menu.addAction("Set Normal Modus to GPX")
         self.addPointAction = self.gpx_menu.addAction("Set Add Point Modus to GPX")
         self.deleteRectangleAction = self.gpx_menu.addAction("Set Delete Rectangle Modus from GPX")
@@ -361,6 +363,23 @@ class BildController(QMainWindow):
         if quelle == self.ShowWebsitesAction:
             downloadOSMData(round(self.x),round(self.y),self.z,self.parameter)
             parseOSMXml(self.parameter)
+        if quelle == self.PositionToGPXAction:
+            if len(self.gpxtrkpt) > 0:
+                dlat = 0.0
+                dlon = 0.0
+                anzahl = 0
+                for trkpt in self.gpxtrkpt:
+                    lat = trkpt[0]
+                    lon = trkpt[1]
+                    dlat += lat
+                    dlon += lon
+                    anzahl = anzahl + 1
+                dlat = dlat / anzahl
+                dlon = dlon / anzahl
+                self.z = 12
+                (self.x,self.y) = calculateXY(dlat,dlon,self.z)
+                self.x = self.x - 0.5
+                self.y = self.y - 0.5
         if quelle == self.ReadGPXAction:
             newgpxtrkpt = readGPX()
             for trkpt in newgpxtrkpt:
