@@ -4,15 +4,12 @@ import math
 import platform
 from datetime import datetime
 from xml.dom import minidom
-from MyOpenStreetMap.parameter import Parameter
 from urllib import request
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
 from PyQt5.QtCore import Qt
-from numpy.compat.py3k import long
 
-parameter = Parameter()
 gpxtrkpt = []
 
 def readGPX():
@@ -80,9 +77,9 @@ def saveGPX():
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
             
-def parseOSMXml():
+def parseOSMXml(parameter):
     websiteList = []
-    xmldoc = minidom.parse(parameter.getParm("osmxml"))
+    xmldoc = minidom.parse(parameter["osmxml"])
     itemlist = xmldoc.getElementsByTagName('tag')
     for item in itemlist:
         k = item.attributes['k'].value
@@ -98,7 +95,7 @@ def parseOSMXml():
         if k == "link":
             v = item.attributes['v'].value
             websiteList.append(v)
-    f = open(parameter.getParm("temphtml"),'w')
+    f = open(parameter["temphtml"],'w')
     f.write("<html>" + "\n")
     f.write("<body>" + "\n")
     for website in websiteList:
@@ -110,13 +107,13 @@ def parseOSMXml():
     ossystem = platform.system()
     cmd = ""
     if ossystem == "Linux":
-        cmd = "firefox " + parameter.getParm("temphtml")
+        cmd = "firefox " + parameter["temphtml"]
     if ossystem == "Windows":
-        cmd = "start " + parameter.getParm("temphtml")
+        cmd = "start " + parameter["temphtml"]
     erg = os.system(cmd)
     print(erg)
     
-def downloadOSMData(x,y,z):
+def downloadOSMData(x,y,z,parameter):
     latlon = calculateLatLon(x+0.5,y+0.5,z)
     lat = latlon[0]
     lon = latlon[1]
@@ -127,21 +124,21 @@ def downloadOSMData(x,y,z):
     sUrl = "https://api.openstreetmap.org/api/0.6/map?bbox="+minlon+","+minlat+","+maxlon+","+maxlat
     rc = request.urlopen(sUrl)
     inhalt = rc.read()
-    open(parameter.getParm("osmxml"), 'wb').write(inhalt)
+    open(parameter["osmxml"], 'wb').write(inhalt)
     
-def downloadTile(x,y,z):
-    sUrl = "https://tile.thunderforest.com/cycle/"+z+"/"+y+"/"+x+".png?apikey="+parameter.getParm("apiKey")
+def downloadTile(x,y,z,parameter):
+    sUrl = "https://tile.thunderforest.com/cycle/"+z+"/"+y+"/"+x+".png?apikey="+parameter["apiKey"]
     #print(sUrl)
     rc = request.urlopen(sUrl)
     print(rc.code)
     inhalt = rc.read()
-    open(parameter.getParm("tileCache") + "\\tile."+x+"."+y+"."+z+".png", 'wb').write(inhalt)
+    open(parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png", 'wb').write(inhalt)
     return
 
-def getTile(x,y,z):
-    pfad = parameter.getParm("tileCache") + "\\tile."+x+"."+y+"."+z+".png"
+def getTile(x,y,z,parameter):
+    pfad = parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png"
     if not os.path.isfile(pfad):
-        downloadTile(x,y,z)
+        downloadTile(x,y,z,parameter)
     return QImage(pfad)
 
 def calculateXY(lat,lon,z):
@@ -189,7 +186,7 @@ class TilePanel(QWidget):
     
 class BildPanel(QWidget):
     
-    def __init__(self,x,y,z):
+    def __init__(self,x,y,z,parameter):
         self.x = x
         self.y = y
         self.z = z
@@ -200,22 +197,22 @@ class BildPanel(QWidget):
         QWidget.__init__(self)
         self.cluster = QImage(765,765,QImage.Format_RGB32)
         temp = QImage(1020,1020,QImage.Format_RGB32)
-        tile1 = getTile(str(x-1),str(y-1),str(z))
-        tile2 = getTile(str(x),str(y-1),str(z))
-        tile3 = getTile(str(x+1),str(y-1),str(z))
-        tile4 = getTile(str(x+2),str(y-1),str(z))
-        tile5 = getTile(str(x-1),str(y),str(z))
-        tile6 = getTile(str(x),str(y),str(z))
-        tile7 = getTile(str(x+1),str(y),str(z))
-        tile8 = getTile(str(x+2),str(y),str(z))
-        tile9 = getTile(str(x-1),str(y+1),str(z))
-        tile10 = getTile(str(x),str(y+1),str(z))
-        tile11 = getTile(str(x+1),str(y+1),str(z))
-        tile12 = getTile(str(x+2),str(y+1),str(z))
-        tile13 = getTile(str(x-1),str(y+2),str(z))
-        tile14 = getTile(str(x),str(y+2),str(z))
-        tile15 = getTile(str(x+1),str(y+2),str(z))
-        tile16 = getTile(str(x+2),str(y+2),str(z))       
+        tile1 = getTile(str(x-1),str(y-1),str(z),parameter)
+        tile2 = getTile(str(x),str(y-1),str(z),parameter)
+        tile3 = getTile(str(x+1),str(y-1),str(z),parameter)
+        tile4 = getTile(str(x+2),str(y-1),str(z),parameter)
+        tile5 = getTile(str(x-1),str(y),str(z),parameter)
+        tile6 = getTile(str(x),str(y),str(z),parameter)
+        tile7 = getTile(str(x+1),str(y),str(z),parameter)
+        tile8 = getTile(str(x+2),str(y),str(z),parameter)
+        tile9 = getTile(str(x-1),str(y+1),str(z),parameter)
+        tile10 = getTile(str(x),str(y+1),str(z),parameter)
+        tile11 = getTile(str(x+1),str(y+1),str(z),parameter)
+        tile12 = getTile(str(x+2),str(y+1),str(z),parameter)
+        tile13 = getTile(str(x-1),str(y+2),str(z),parameter)
+        tile14 = getTile(str(x),str(y+2),str(z),parameter)
+        tile15 = getTile(str(x+1),str(y+2),str(z),parameter)
+        tile16 = getTile(str(x+2),str(y+2),str(z),parameter)       
         for x in range(0,255):
             for y in range(0,255):
                 color = tile1.pixel(x,y)
@@ -353,16 +350,17 @@ class BildPanel(QWidget):
     
 class BildController(QMainWindow):
     
-    def __init__(self,x,y,z):
+    def __init__(self,x,y,z,parameter):
         QMainWindow.__init__(self)
         self.x = x 
         self.y = y 
         self.z = z
+        self.parameter = parameter
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0)
         self.gpxDeletePoint2 = (0.0,0.0)
         self.setGeometry(100,100,765,765)
-        self.bild = BildPanel(x,y,z)
+        self.bild = BildPanel(x,y,z,parameter)
         self.setCentralWidget(self.bild)
         self.bild.addMouseListener(self)
         self.menu = QMenuBar()
@@ -389,7 +387,7 @@ class BildController(QMainWindow):
     def myprint(self):
         printer = QPrinter()
         printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setOutputFileName(parameter.getParm("pdfFile"))
+        printer.setOutputFileName(self.parameter["pdfFile"])
         qp = QPainter()
         qp.begin(printer)
         qp.drawPixmap(0,0,QPixmap.fromImage(self.bild.cluster))
@@ -430,15 +428,15 @@ class BildController(QMainWindow):
             y = math.trunc(self.y)
             for i in range(0,4):
                 for j in range(0,4):
-                    downloadTile(str(x-1+i),str(y-1+j),str(self.z))
+                    downloadTile(str(x-1+i),str(y-1+j),str(self.z),self.parameter)
         if quelle == self.ShowWebsitesAction:
-            downloadOSMData(round(self.x),round(self.y),self.z)
-            parseOSMXml()
+            downloadOSMData(round(self.x),round(self.y),self.z,self.parameter)
+            parseOSMXml(self.parameter)
         if quelle == self.ReadGPXAction:
             readGPX()
         if quelle == self.SaveGPXAction:
             saveGPX()
-        self.bild = BildPanel(self.x,self.y,self.z)
+        self.bild = BildPanel(self.x,self.y,self.z,self.parameter)
         self.bild.addMouseListener(self)
         self.setCentralWidget(self.bild)
         self.update()
@@ -450,7 +448,7 @@ class BildController(QMainWindow):
             pos = ev.pos()
             a = pos.x()
             b = pos.y()
-            delta = 383 + int(parameter.getParm("adjustment"))
+            delta = 383 + int(self.parameter["adjustment"])
             deltax = (float(b-delta) / 255.0) 
             deltay = (float(a-delta) / 255.0)
             print(">>>",a,b)
@@ -458,7 +456,7 @@ class BildController(QMainWindow):
             self.y = float(self.y) + deltay
             print(self.x+0.5,self.y+0.5,self.z)
             print(calculateLatLon(self.x+0.5,self.y+0.5,self.z))
-            self.bild = BildPanel(self.x,self.y,self.z)
+            self.bild = BildPanel(self.x,self.y,self.z,self.parameter)
             self.bild.addMouseListener(self)
             self.setCentralWidget(self.bild)
             self.update()
@@ -467,7 +465,7 @@ class BildController(QMainWindow):
                 pos = ev.pos()
                 a = pos.x()
                 b = pos.y()
-                delta = 383 + int(parameter.getParm("adjustment"))
+                delta = 383 + int(self.parameter["adjustment"])
                 deltax = (float(b-delta) / 255.0) 
                 deltay = (float(a-delta) / 255.0)
                 print(">>>",a,b)
@@ -484,7 +482,7 @@ class BildController(QMainWindow):
                     if wort != worte[0]:
                         tim = tim + "." + wort
                 gpxtrkpt.append((lat,lon,ele,tim))
-                self.bild = BildPanel(self.x,self.y,self.z)
+                self.bild = BildPanel(self.x,self.y,self.z,self.parameter)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
@@ -492,7 +490,7 @@ class BildController(QMainWindow):
                 pos = ev.pos()
                 a = pos.x()
                 b = pos.y()
-                delta = 383 + int(parameter.getParm("adjustment"))
+                delta = 383 + int(self.parameter["adjustment"])
                 deltax = (float(b-delta) / 255.0) 
                 deltay = (float(a-delta) / 255.0)
                 print(">>>",a,b)
@@ -529,7 +527,7 @@ class BildController(QMainWindow):
                             newgpxtrkpt.append(trkpt)
                     gpxtrkpt = newgpxtrkpt
                     self.gpxmodus = "normal"
-                self.bild = BildPanel(self.x,self.y,self.z)
+                self.bild = BildPanel(self.x,self.y,self.z,self.parameter)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
