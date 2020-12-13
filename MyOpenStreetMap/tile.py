@@ -133,7 +133,6 @@ def downloadTile(x,y,z,parameter):
     print(rc.code)
     inhalt = rc.read()
     open(parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png", 'wb').write(inhalt)
-    return
 
 def getTile(x,y,z,parameter):
     pfad = parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png"
@@ -174,14 +173,12 @@ class TilePanel(QWidget):
         width = self.image.width()
         height = self.image.height()
         self.setGeometry(100,100,width,height)
-        return
     
     def paintEvent(self,event):
         qp = QPainter()
         qp.begin(self)
         qp.drawPixmap(0,0,QPixmap.fromImage(self.image))
         qp.end()
-        return
     
     
 class BildPanel(QWidget):
@@ -341,11 +338,9 @@ class BildPanel(QWidget):
     def mousePressEvent(self,ev):
         for listener in self.alListener:
             listener.mousePressed(ev)
-        return
     
     def addMouseListener(self,listener):
         self.alListener.append(listener)
-        return
     
     
 class BildController(QMainWindow):
@@ -392,7 +387,6 @@ class BildController(QMainWindow):
         qp.begin(printer)
         qp.drawPixmap(0,0,QPixmap.fromImage(self.bild.cluster))
         qp.end()
-        return
     
     def triggered(self,quelle):
         if quelle == self.normalModusAction:
@@ -440,7 +434,6 @@ class BildController(QMainWindow):
         self.bild.addMouseListener(self)
         self.setCentralWidget(self.bild)
         self.update()
-        return
     
     def mousePressed(self,ev):
         global gpxtrkpt
@@ -531,5 +524,4 @@ class BildController(QMainWindow):
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
-        return
     
