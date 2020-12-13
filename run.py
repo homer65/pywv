@@ -6,8 +6,7 @@ def init(pfad,parameter):
     print(pfad)
     with open(pfad,"r") as f:
         for zeile in f:
-            satz = zeile[:-1] 
-            worte = satz.split("=")
+            worte = zeile.split("=")
             if len(worte) > 1:
                 key = worte[0]
                 wert = worte[1]
@@ -16,7 +15,6 @@ def init(pfad,parameter):
                 if key == "y":
                     wert = str(float(wert) - 0.5)
                 parameter[key] = wert
-    return parameter
 
 def main():
     app = QApplication(sys.argv)
@@ -30,9 +28,9 @@ def main():
     parameter["z"] = "16"
     parameter["adjustment"] = "9"
     if len(sys.argv) > 1:
-        parameter = init(sys.argv[1],parameter)
+        init(sys.argv[1],parameter)
     else:
-        parameter = init("run.ini",parameter)
+        init("run.ini",parameter)
     x = float(parameter["x"])
     y = float(parameter["y"])
     z = int(parameter["z"])
