@@ -28,7 +28,7 @@ def main():
     config["tileCache"] = "C:\\Downloads\\TileCache"
     config["x"] = "21802"
     config["y"] = "34084"
-    config["z"] = "16"
+    config["zoom"] = "16"
     config["adjustment"] = "9"
     config["tileserver"] = "thunderforest"
     # ini Datei wird normalerweise über Argument beim Aufruf angegeben
@@ -39,9 +39,9 @@ def main():
         init("run.ini",config)
     x = float(config["x"])
     y = float(config["y"])
-    z = int(config["z"])
+    zoom = int(config["zoom"])
     # Aufruf des GUI
-    panel = BildController(x,y,z,config)
+    panel = BildController(x,y,zoom,config)
     panel.show()
     sys.exit(app.exec_())
     

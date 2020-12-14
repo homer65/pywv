@@ -116,12 +116,12 @@ def parseOSMXml(config):
     erg = os.system(cmd)
     print(erg)
     
-def downloadOSMData(x,y,z,config):
+def downloadOSMData(x,y,zoom,config):
     """
     Lese XML Daten von Openstreetmap für ein kleines Gebiet
     Speichere diese Daten in einer Datei
     """
-    latlon = calculateLatLon(x+0.5,y+0.5,z)
+    latlon = calculateLatLon(x+0.5,y+0.5,zoom)
     lat = latlon[0]
     lon = latlon[1]
     minlat = str(lat - 0.005)
@@ -134,41 +134,41 @@ def downloadOSMData(x,y,z,config):
     with open(config["osmxml"],"wb") as f:
         f.write(inhalt)
     
-def downloadTile(x,y,z,config):
+def downloadTile(x,y,zoom,config):
     """ Lese eine Kachel von Thunderforest oder OpenStreetMap und speichere diese im Tile Cache Directory """
-    sUrl = "https://tile.thunderforest.com/cycle/"+z+"/"+y+"/"+x+".png?apikey="+config["apiKey"]
+    sUrl = "https://tile.thunderforest.com/cycle/"+zoom+"/"+y+"/"+x+".png?apikey="+config["apiKey"]
     if config["tileserver"] == "openstreetmap":
-        sUrl = "https://a.tile.openstreetmap.de/"+z+"/"+y+"/"+x+".png"
+        sUrl = "https://a.tile.openstreetmap.de/"+zoom+"/"+y+"/"+x+".png"
     rc = request.urlopen(sUrl)
     print(rc.code)
     inhalt = rc.read()
-    tileFileName = os.path.join(config["tileCache"],"tile."+x+"."+y+"."+z+".png")
+    tileFileName = os.path.join(config["tileCache"],"tile."+x+"."+y+"."+zoom+".png")
     with open(tileFileName,"wb") as f:
         f.write(inhalt)
       
-def get_tile(x, y, z, config):
+def get_tile(x, y, zoom, config):
     """ Lese ein Thunderforest/Openstreetmap Kachel """
-    path = Path(config["tileCache"]) / f"tile.{x}.{y}.{z}.png"
+    path = Path(config["tileCache"]) / f"tile.{x}.{y}.{zoom}.png"
     if not path.is_file():
-        downloadTile(str(x), str(y), str(z), config)
+        downloadTile(str(x), str(y), str(zoom), config)
     return QImage(str(path))
 
-def calculateXY(lat,lon,z):
+def calculateXY(lat,lon,zoom):
     """ Berechne X und Y Koordinate aus Latitude und Longitude bei vorgegebener Zoom Stufe Z """
     fz = 1.0;
-    for i in range(0,z):
+    for i in range(0,zoom):
         fz = 2.0 * fz;
     ytile = (lon + 180) / 360 * fz 
     xtile = (1 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2 * fz
     return (xtile,ytile)
     
-def calculateLatLon(y,x,z):
-    """ Berechne Latitude und Longitude aus X un Y Koordinate per Zoomstufe Z """
+def calculateLatLon(y,x,zoom):
+    """ Berechne Latitude und Longitude aus X un Y Koordinate per Zoomstufe zoom """
     x = float(x)
     y = float(y)
     pi = math.pi
     fz = 1.0
-    for i in range(0,z):
+    for i in range(0,zoom):
         fz = fz * 2.0
     lon = ((360.0 * float(x))/float(fz)) - 180.0
     lat = pi - 2.0 * pi * (float(y)/float(fz))
@@ -200,10 +200,10 @@ class TilePanel(QWidget):
 class BildPanel(QWidget):
     """ Baut das anzuzeigende Bild auf """
     
-    def __init__(self,x,y,z,config,gpxtrackpoint):
+    def __init__(self,x,y,zoom,config,gpxtrackpoint):
         self.x = x # X Koordinate
         self.y = y # Y Koordinate
-        self.z = z # Zoom stufe
+        self.zoom = zoom # Zoom stufe
         self.gpxtrackpoint = gpxtrackpoint
         # Teile Koordinaten in Ganzahl Anteil und Nachkomma Stellen
         # Da Kacheln von Thunderforest immer bei ganzzahligen Koordinaten beginnen
@@ -220,7 +220,7 @@ class BildPanel(QWidget):
         for i in range(0,4):
             tiles1 = []
             for j in range(0,4):
-                tile = get_tile((x-1+j), (y-1+i), (z), config)
+                tile = get_tile((x-1+j), (y-1+i), (zoom), config)
                 tiles1.append(tile)
             tiles.append(tiles1)
         # Baue das 4x4 Bild aus den Kacheln auf
@@ -259,7 +259,7 @@ class BildPanel(QWidget):
             for trackpoint in self.gpxtrackpoint:
                 lat = trackpoint[0]
                 lon = trackpoint[1]
-                (gpx_x,gpx_y) = calculateXY(lat,lon,z)
+                (gpx_x,gpx_y) = calculateXY(lat,lon,zoom)
                 deltay = (gpx_x - self.x + 1.0) * 255.0
                 deltax = (gpx_y - self.y + 1.0) * 255.0
                 # Ist der Track Point auf dem 3x3 Bild dann zeichne dort 9 rote Pixel
@@ -288,18 +288,18 @@ class BildPanel(QWidget):
 class BildController(QMainWindow):
     """ Die GUI für den Benutzer """
     
-    def __init__(self,x,y,z,config):
+    def __init__(self,x,y,zoom,config):
         QMainWindow.__init__(self)
         self.x = x # X Koordinate
         self.y = y # Y Koordinate
-        self.z = z # Zoom stufe
+        self.zoom = zoom # Zoom stufe
         self.config = config # Konfiguration aus der ini Datei
         self.gpxtrackpoint = [] # Alle Track Points eines GPX Tracks
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0) # Ecke eines Rechtecks
         self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegende Ecke des Rechtecks
         self.setGeometry(100,100,765,765)
-        self.bild = BildPanel(x,y,z,config,self.gpxtrackpoint) # Baue das Bild auf
+        self.bild = BildPanel(x,y,zoom,config,self.gpxtrackpoint) # Baue das Bild auf
         self.setCentralWidget(self.bild)
         self.bild.addMouseListener(self)
         self.menu = QMenuBar()
@@ -347,14 +347,14 @@ class BildController(QMainWindow):
             self.myprint()
         if quelle == self.ZoomUpAction:
             # Zoom Stufe herabsetzen bis zur minimalen Zoom Stufe 2
-            if self.z > 2:
-                self.z = self.z - 1
+            if self.zoom > 2:
+                self.zoom = self.zoom - 1
                 self.x = (self.x / 2) - 0.25
                 self.y = (self.y / 2) - 0.25
         if quelle == self.ZoomDownAction:
             # Zoom Stufe heraufsetzen bis zur maximalen Zoom Stufe 18
-            if self.z < 18:
-                self.z = self.z + 1
+            if self.zoom < 18:
+                self.zoom = self.zoom + 1
                 self.x = (2 * self.x) + 0.5
                 self.y = (2 * self.y) + 0.5
         if quelle == self.WestAction:
@@ -371,9 +371,9 @@ class BildController(QMainWindow):
             y = math.trunc(self.y)
             for i in range(0,4):
                 for j in range(0,4):
-                    downloadTile(str(x-1+i),str(y-1+j),str(self.z),self.config)
+                    downloadTile(str(x-1+i),str(y-1+j),str(self.zoom),self.config)
         if quelle == self.ShowWebsitesAction:
-            downloadOSMData(round(self.x),round(self.y),self.z,self.config)
+            downloadOSMData(round(self.x),round(self.y),self.zoom,self.config)
             parseOSMXml(self.config)
         if quelle == self.PositionToGPXAction:
             # Positioniere die Karte so, das íhr Mittelpunkt mit dem Mittelpunkt des GPX Track übereinstimmt
@@ -390,7 +390,7 @@ class BildController(QMainWindow):
                 dlat = dlat / anzahl
                 dlon = dlon / anzahl
                 self.z = 12
-                (self.x,self.y) = calculateXY(dlat,dlon,self.z)
+                (self.x,self.y) = calculateXY(dlat,dlon,self.zoom)
                 self.x = self.x - 0.5
                 self.y = self.y - 0.5
         if quelle == self.ReadGPXAction:
@@ -400,7 +400,7 @@ class BildController(QMainWindow):
                 self.gpxtrackpoint.append(trackpoint)
         if quelle == self.SaveGPXAction:
             saveGPX(self.gpxtrackpoint)
-        self.bild = BildPanel(self.x,self.y,self.z,self.config,self.gpxtrackpoint)
+        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint)
         self.bild.addMouseListener(self)
         self.setCentralWidget(self.bild)
         self.update()
@@ -417,9 +417,9 @@ class BildController(QMainWindow):
             print(">>>",a,b)
             self.x = float(self.x) + deltax
             self.y = float(self.y) + deltay
-            print(self.x+0.5,self.y+0.5,self.z)
-            print(calculateLatLon(self.x+0.5,self.y+0.5,self.z))
-            self.bild = BildPanel(self.x,self.y,self.z,self.config,self.gpxtrackpoint)
+            print(self.x+0.5,self.y+0.5,self.zoom)
+            print(calculateLatLon(self.x+0.5,self.y+0.5,self.zoom))
+            self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint)
             self.bild.addMouseListener(self)
             self.setCentralWidget(self.bild)
             self.update()
@@ -435,8 +435,8 @@ class BildController(QMainWindow):
                 print(">>>",a,b)
                 self.x = float(self.x) + deltax
                 self.y = float(self.y) + deltay
-                print(self.x+0.5,self.y+0.5,self.z)
-                (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.z)
+                print(self.x+0.5,self.y+0.5,self.zoom)
+                (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.zoom)
                 ele = "0.0"
                 tim = datetime.today().isoformat()
                 worte = tim.split(".")
@@ -446,7 +446,7 @@ class BildController(QMainWindow):
                     if wort != worte[0]:
                         tim = tim + "." + wort
                 self.gpxtrackpoint.append((lat,lon,ele,tim))
-                self.bild = BildPanel(self.x,self.y,self.z,self.config,self.gpxtrackpoint)
+                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
@@ -461,8 +461,8 @@ class BildController(QMainWindow):
                 print(">>>",a,b)
                 self.x = float(self.x) + deltax
                 self.y = float(self.y) + deltay
-                print(self.x+0.5,self.y+0.5,self.z)
-                (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.z)
+                print(self.x+0.5,self.y+0.5,self.zoom)
+                (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.zoom)
                 if self.gpxDeletePoint1 == (0.0,0.0):
                     self.gpxDeletePoint1 = (lat,lon)
                 else:
@@ -492,7 +492,7 @@ class BildController(QMainWindow):
                             newgpxtrackpoint.append(trackpoint)
                     self.gpxtrackpoint = newgpxtrackpoint
                     self.gpxmodus = "normal"
-                self.bild = BildPanel(self.x,self.y,self.z,self.config,self.gpxtrackpoint)
+                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
