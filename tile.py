@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSi
 from PyQt5.QtCore import Qt
 
 def readGPX():
-    gpxtrkpt = []
+    gpxtrackpoint = []
     dlg = QFileDialog()
     dlg.setFileMode(QFileDialog.ExistingFile)
     if dlg.exec_():
@@ -32,14 +32,14 @@ def readGPX():
                         tim = time.firstChild.data
                     lat = item.attributes['lat'].value
                     lon = item.attributes['lon'].value
-                    gpxtrkpt.append((float(lat),float(lon),ele,tim))
+                    gpxtrackpoint.append((float(lat),float(lon),ele,tim))
                     #print(lat,lon,ele,tim)
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
-    return gpxtrkpt
+    return gpxtrackpoint
         
-def saveGPX(gpxtrkpt):
+def saveGPX(gpxtrackpoint):
     gpxdoc = "<?xml version='1.0' encoding='UTF-8'?>" + "\n"
     gpxdoc += "<gpx version=\"1.1\" creator=\"http://www.myoggradio.org\"" + "\n"
     gpxdoc += "xmlns=\"http://www.topografix.com/GPX/1/1\"" + "\n"
@@ -51,7 +51,7 @@ def saveGPX(gpxtrkpt):
     gpxdoc += " </metadata>" + "\n"
     gpxdoc += " <trk>" + "\n"
     gpxdoc += "  <trkseg>" + "\n"
-    for (flat,flon,ele,tim) in gpxtrkpt:
+    for (flat,flon,ele,tim) in gpxtrackpoint:
         lat = str(flat)
         lon = str(flon)
         gpxdoc += "   <trkpt lat=\"" + lat + "\" lon=\"" + lon + "\">" + "\n"
@@ -183,18 +183,18 @@ class TilePanel(QWidget):
     
 class BildPanel(QWidget):
     
-    def __init__(self,x,y,z,parameter,gpxtrkpt):
+    def __init__(self,x,y,z,parameter,gpxtrackpoint):
         self.x = x
         self.y = y
         self.z = z
-        self.gpxtrkpt = gpxtrkpt
+        self.gpxtrackpoint = gpxtrackpoint
         x = math.trunc(x) 
         y = math.trunc(y)
         self.p = math.trunc((self.x - x) * 255.0)
         self.q = math.trunc((self.y - y) * 255.0)
         QWidget.__init__(self)
         self.cluster = QImage(765,765,QImage.Format_RGB32)
-        temp = QImage(1020,1020,QImage.Format_RGB32)
+        temporaer = QImage(1020,1020,QImage.Format_RGB32)
         tiles = []
         for i in range(0,4):
             tiles1 = []
@@ -208,29 +208,29 @@ class BildPanel(QWidget):
                 for a in range(0,255):
                     for b in range(0,255):
                         color = tile.pixel(a,b)
-                        temp.setPixel(i*255+a,j*255+b,color) 
+                        temporaer.setPixel(i*255+a,j*255+b,color) 
         color = qRgba(0,255,0,0)
         x = 255
         for y in range(0,1020):
-            temp.setPixel(x,y,1020)
+            temporaer.setPixel(x,y,1020)
         x = 510
         for y in range(0,1020):
-            temp.setPixel(x,y,1020)            
+            temporaer.setPixel(x,y,1020)            
         x = 765
         for y in range(0,1020):
-            temp.setPixel(x,y,1020)
+            temporaer.setPixel(x,y,1020)
         y = 255
         for x in range(0,1020):
-            temp.setPixel(x,y,1020)
+            temporaer.setPixel(x,y,1020)
         y = 510
         for x in range(0,1020):
-            temp.setPixel(x,y,1020)            
+            temporaer.setPixel(x,y,1020)            
         y = 765
         for x in range(0,1020):
-            temp.setPixel(x,y,1020)
+            temporaer.setPixel(x,y,1020)
         for x in range(0,765):
             for y in range(0,765):
-                color = temp.pixel(x+self.q,y+self.p) 
+                color = temporaer.pixel(x+self.q,y+self.p) 
                 self.cluster.setPixel(x,y,color)
         for x in range(358,408):
             y = 383
@@ -240,10 +240,10 @@ class BildPanel(QWidget):
             x = 383
             color = qRgba(255,0,0,0)
             self.cluster.setPixel(x,y,color)
-        if len(self.gpxtrkpt) > 0:
-            for trkpt in self.gpxtrkpt:
-                lat = trkpt[0]
-                lon = trkpt[1]
+        if len(self.gpxtrackpoint) > 0:
+            for trackpoint in self.gpxtrackpoint:
+                lat = trackpoint[0]
+                lon = trackpoint[1]
                 # print(lat,lon)
                 (gpx_x,gpx_y) = calculateXY(lat,lon,z)
                 deltay = (gpx_x - self.x + 1.0) * 255.0
@@ -289,12 +289,12 @@ class BildController(QMainWindow):
         self.y = y 
         self.z = z
         self.parameter = parameter
-        self.gpxtrkpt = []
+        self.gpxtrackpoint = []
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0)
         self.gpxDeletePoint2 = (0.0,0.0)
         self.setGeometry(100,100,765,765)
-        self.bild = BildPanel(x,y,z,parameter,self.gpxtrkpt)
+        self.bild = BildPanel(x,y,z,parameter,self.gpxtrackpoint)
         self.setCentralWidget(self.bild)
         self.bild.addMouseListener(self)
         self.menu = QMenuBar()
@@ -367,13 +367,13 @@ class BildController(QMainWindow):
             downloadOSMData(round(self.x),round(self.y),self.z,self.parameter)
             parseOSMXml(self.parameter)
         if quelle == self.PositionToGPXAction:
-            if len(self.gpxtrkpt) > 0:
+            if len(self.gpxtrackpoint) > 0:
                 dlat = 0.0
                 dlon = 0.0
                 anzahl = 0
-                for trkpt in self.gpxtrkpt:
-                    lat = trkpt[0]
-                    lon = trkpt[1]
+                for trackpoint in self.gpxtrackpoint:
+                    lat = trackpoint[0]
+                    lon = trackpoint[1]
                     dlat += lat
                     dlon += lon
                     anzahl = anzahl + 1
@@ -384,12 +384,12 @@ class BildController(QMainWindow):
                 self.x = self.x - 0.5
                 self.y = self.y - 0.5
         if quelle == self.ReadGPXAction:
-            newgpxtrkpt = readGPX()
-            for trkpt in newgpxtrkpt:
-                self.gpxtrkpt.append(trkpt)
+            newgpxtrackpoint = readGPX()
+            for trackpoint in newgpxtrackpoint:
+                self.gpxtrackpoint.append(trackpoint)
         if quelle == self.SaveGPXAction:
-            saveGPX(self.gpxtrkpt)
-        self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrkpt)
+            saveGPX(self.gpxtrackpoint)
+        self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrackpoint)
         self.bild.addMouseListener(self)
         self.setCentralWidget(self.bild)
         self.update()
@@ -407,7 +407,7 @@ class BildController(QMainWindow):
             self.y = float(self.y) + deltay
             print(self.x+0.5,self.y+0.5,self.z)
             print(calculateLatLon(self.x+0.5,self.y+0.5,self.z))
-            self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrkpt)
+            self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrackpoint)
             self.bild.addMouseListener(self)
             self.setCentralWidget(self.bild)
             self.update()
@@ -432,8 +432,8 @@ class BildController(QMainWindow):
                 for wort in worte:
                     if wort != worte[0]:
                         tim = tim + "." + wort
-                self.gpxtrkpt.append((lat,lon,ele,tim))
-                self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrkpt)
+                self.gpxtrackpoint.append((lat,lon,ele,tim))
+                self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrackpoint)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
@@ -463,10 +463,10 @@ class BildController(QMainWindow):
                         lon3 = lon2
                         lon2 = lon1
                         lon1 = lon3
-                    newgpxtrkpt = []
-                    for trkpt in self.gpxtrkpt:
-                        lat = trkpt[0]
-                        lon = trkpt[1]
+                    newgpxtrackpoint = []
+                    for trackpoint in self.gpxtrackpoint:
+                        lat = trackpoint[0]
+                        lon = trackpoint[1]
                         inRectangle = True
                         if lat < lat1: inRectangle = False
                         if lat > lat2: inRectangle = False
@@ -475,10 +475,10 @@ class BildController(QMainWindow):
                         if inRectangle:
                             pass
                         else:
-                            newgpxtrkpt.append(trkpt)
-                    self.gpxtrkpt = newgpxtrkpt
+                            newgpxtrackpoint.append(trackpoint)
+                    self.gpxtrackpoint = newgpxtrackpoint
                     self.gpxmodus = "normal"
-                self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrkpt)
+                self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrackpoint)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
