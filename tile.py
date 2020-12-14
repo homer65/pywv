@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSi
 from PyQt5.QtCore import Qt
 
 def readGPX():
-    # Lese GPX Track aus Datei und gebe die enthaltenen Trackpoints zurück
+    """ Lese GPX Track aus Datei und gebe die enthaltenen Trackpoints zurück """
     gpxtrackpoint = []
     dlg = QFileDialog()
     dlg.setFileMode(QFileDialog.ExistingFile)
@@ -42,7 +42,7 @@ def readGPX():
     return gpxtrackpoint
         
 def saveGPX(gpxtrackpoint):
-    # Speichere die Trackpoints in Datei (GPX Track)
+    """ Speichere die Trackpoints in Datei (GPX Track) """
     gpxdoc = "<?xml version='1.0' encoding='UTF-8'?>" + "\n"
     gpxdoc += "<gpx version=\"1.1\" creator=\"http://www.myoggradio.org\"" + "\n"
     gpxdoc += "xmlns=\"http://www.topografix.com/GPX/1/1\"" + "\n"
@@ -77,8 +77,10 @@ def saveGPX(gpxtrackpoint):
             print(sys.exc_info()[1])
             
 def parseOSMXml(config):
-    # Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen Webseiten
-    # Starte dann einen Webbrowser mit den extrahierten Daten
+    """
+    Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen Webseiten
+    Starte dann einen Webbrowser mit den extrahierten Daten
+    """
     websiteList = []
     xmldoc = minidom.parse(config["osmxml"])
     itemlist = xmldoc.getElementsByTagName('tag')
@@ -115,8 +117,10 @@ def parseOSMXml(config):
     print(erg)
     
 def downloadOSMData(x,y,z,config):
-    # Lese XML Daten von Openstreetmap für ein kleines Gebiet
-    # Speichere diese Daten in einer Datei
+    """
+    Lese XML Daten von Openstreetmap für ein kleines Gebiet
+    Speichere diese Daten in einer Datei
+    """
     latlon = calculateLatLon(x+0.5,y+0.5,z)
     lat = latlon[0]
     lon = latlon[1]
@@ -131,7 +135,7 @@ def downloadOSMData(x,y,z,config):
         f.write(inhalt)
     
 def downloadTile(x,y,z,config):
-    # Lese eine Kachel von Thunderforest oder OpenStreetMap und speichere diese im Tile Cache Directory
+    """ Lese eine Kachel von Thunderforest oder OpenStreetMap und speichere diese im Tile Cache Directory """
     sUrl = "https://tile.thunderforest.com/cycle/"+z+"/"+y+"/"+x+".png?apikey="+config["apiKey"]
     if config["tileserver"] == "openstreetmap":
         sUrl = "https://a.tile.openstreetmap.de/"+z+"/"+y+"/"+x+".png"
@@ -143,14 +147,14 @@ def downloadTile(x,y,z,config):
         f.write(inhalt)
       
 def get_tile(x, y, z, config):
-    # Lese ein Thunderforest/Openstreetmap Kachel
+    """ Lese ein Thunderforest/Openstreetmap Kachel """
     path = Path(config["tileCache"]) / f"tile.{x}.{y}.{z}.png"
     if not path.is_file():
         downloadTile(str(x), str(y), str(z), config)
     return QImage(str(path))
 
 def calculateXY(lat,lon,z):
-    # Berechne X und Y Koordinate aus Latitude und Longitude bei vorgegebener Zoom Stufe Z
+    """ Berechne X und Y Koordinate aus Latitude und Longitude bei vorgegebener Zoom Stufe Z """
     fz = 1.0;
     for i in range(0,z):
         fz = 2.0 * fz;
@@ -159,7 +163,7 @@ def calculateXY(lat,lon,z):
     return (xtile,ytile)
     
 def calculateLatLon(y,x,z):
-    # Berechne Latitude und Longitude aus X un Y Koordinate per Zoomstufe Z
+    """ Berechne Latitude und Longitude aus X un Y Koordinate per Zoomstufe Z """
     x = float(x)
     y = float(y)
     pi = math.pi
@@ -177,7 +181,7 @@ def calculateLatLon(y,x,z):
 
 
 class TilePanel(QWidget):
-    # Zeigt ein QImage an
+    """ Zeigt ein QImage an """
     
     def __init__(self,image):
         QWidget.__init__(self)
@@ -194,7 +198,7 @@ class TilePanel(QWidget):
     
     
 class BildPanel(QWidget):
-    # Baut das anzuzeigende Bild auf
+    """ Baut das anzuzeigende Bild auf """
     
     def __init__(self,x,y,z,config,gpxtrackpoint):
         self.x = x # X Koordinate
@@ -282,7 +286,7 @@ class BildPanel(QWidget):
     
     
 class BildController(QMainWindow):
-    # Die GUI für den Benutzer
+    """ Die GUI für den Benutzer """
     
     def __init__(self,x,y,z,config):
         QMainWindow.__init__(self)

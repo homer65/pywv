@@ -4,7 +4,7 @@ from tile import BildController
 from PyQt5.QtWidgets import QApplication
 
 def init(pfad,config):
-    # Lies Configuration aus ini Datei
+    """ Lies Configuration aus ini Datei """
     print(pfad)
     with open(pfad,"r") as f:
         for zeile in f:
