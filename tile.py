@@ -2,6 +2,7 @@ import os
 import sys
 import math
 import platform
+from pathlib import Path
 from datetime import datetime
 from xml.dom import minidom
 from urllib import request
@@ -132,7 +133,7 @@ def downloadTile(x,y,z,parameter):
     tileFileName = os.path.join(parameter["tileCache"],"tile."+x+"."+y+"."+z+".png")
     with open(tileFileName,"wb") as f:
         f.write(inhalt)
-
+        
 def getTile(x,y,z,parameter):
     pfad = os.path.join(parameter["tileCache"],"tile."+x+"."+y+"."+z+".png")
     #pfad = parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png"
@@ -199,7 +200,7 @@ class BildPanel(QWidget):
         for i in range(0,4):
             tiles1 = []
             for j in range(0,4):
-                tile = getTile(str(x-1+j),str(y-1+i),str(z),parameter)
+                tile = getTile(str(x-1+j), str(y-1+i), str(z), parameter)
                 tiles1.append(tile)
             tiles.append(tiles1)
         for i in range(0,4):
@@ -248,12 +249,7 @@ class BildPanel(QWidget):
                 (gpx_x,gpx_y) = calculateXY(lat,lon,z)
                 deltay = (gpx_x - self.x + 1.0) * 255.0
                 deltax = (gpx_y - self.y + 1.0) * 255.0
-                ok = True
-                if deltax < 0.0: ok = False
-                if deltay < 0.0: ok = False
-                if deltax > 765.0: ok = False
-                if deltay > 765.0: ok = False
-                if ok:
+                if 0 < deltax < 765 and 0 < deltay < 765:
                     color = qRgba(255,0,0,0)
                     self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)-1,color)
                     self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)-1,color)
