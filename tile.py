@@ -1,3 +1,4 @@
+# coding: latin-1
 import os
 import sys
 import math

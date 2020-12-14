@@ -1,3 +1,4 @@
+# coding: latin-1
 import sys
 from tile import BildController
 from PyQt5.QtWidgets import QApplication
