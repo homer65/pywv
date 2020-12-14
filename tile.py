@@ -12,6 +12,23 @@ from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
 from PyQt5.QtCore import Qt
 
+def printNextAmenity(lat,lon,amenities):
+    """ Drucke die nächstgelegene Amenity an """
+    minAmenity = None
+    minAbstand = 1000000000.0
+    for amenity in amenities:
+        alat = amenity["lat"]
+        alon = amenity["lon"]
+        abstand = (alat-lat)*(alat-lat) + (alon-lon)*(alon-lon)
+        if abstand < minAbstand:
+            minAbstand = abstand
+            minAmenity = amenity
+    if not (minAmenity == None):
+        keylist = list(minAmenity)
+        for key in keylist:
+            wert = minAmenity[key]
+            print(key,wert)
+
 def readGPX():
     """ Lese GPX Track aus Datei und gebe die enthaltenen Trackpoints zurück """
     gpxtrackpoint = []
@@ -75,7 +92,29 @@ def saveGPX(gpxtrackpoint):
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
-            
+def parseAmenity(config):
+    """
+    Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen amenity
+    """
+    amenities = []
+    xmldoc = minidom.parse(config["osmxml"])
+    itemlist = xmldoc.getElementsByTagName('node')
+    for item in itemlist:
+        amenity = {}
+        lat = item.attributes['lat'].value
+        lon = item.attributes['lon'].value
+        amenity["lat"] = float(lat)
+        amenity["lon"] = float(lon)
+        tags = item.getElementsByTagName('tag')
+        isAmenity = False
+        for tag in tags:
+            k = tag.attributes['k'].value
+            v = tag.attributes['v'].value
+            amenity[k] = v
+            if k == "amenity": isAmenity = True
+        if isAmenity: amenities.append(amenity)
+    return amenities
+                    
 def parseOSMXml(config):
     """
     Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen Webseiten
@@ -200,11 +239,13 @@ class TilePanel(QWidget):
 class BildPanel(QWidget):
     """ Baut das anzuzeigende Bild auf """
     
-    def __init__(self,x,y,zoom,config,gpxtrackpoint):
+    def __init__(self,x,y,zoom,config,gpxtrackpoint,amenities):
         self.x = x # X Koordinate
         self.y = y # Y Koordinate
         self.zoom = zoom # Zoom stufe
         self.gpxtrackpoint = gpxtrackpoint
+        self.amenities = amenities
+        flagge = QImage("flagge.png") # Bild um Amenity anzuzeigen
         # Teile Koordinaten in Ganzahl Anteil und Nachkomma Stellen
         # Da Kacheln von Thunderforest immer bei ganzzahligen Koordinaten beginnen
         x = math.trunc(x) 
@@ -268,6 +309,21 @@ class BildPanel(QWidget):
                     for i in range(0,3):
                         for j in range(0,3):
                             self.cluster.setPixel(math.trunc(deltax)-1+i,math.trunc(deltay)-1+j,color)
+        # Wenn Amenities vorhanden sind, zeichne entsprechende Flaggen
+        if len(self.amenities) > 0:
+            for amenity in self.amenities:
+                lat = amenity["lat"]
+                lon = amenity["lon"]
+                (amenity_x,amenity_y) = calculateXY(lat,lon,zoom)
+                deltay = (amenity_x - self.x + 1.0) * 255.0
+                deltax = (amenity_y - self.y + 1.0) * 255.0
+                # Ist die Amenity auf dem 3x3 Bild dann zeichne dort eine Flagge
+                if 0 < deltax < 765 and 0 < deltay < 765:                
+                    for i in range(0,16):
+                        for j in range(0,16):
+                            color = flagge.pixel(i,j)
+                            if not color == 0:
+                                self.cluster.setPixel(deltax+i,deltay+j,color)                            
         # Zeige das Bild
         pan = TilePanel(self.cluster)
         grid=QGridLayout()
@@ -295,11 +351,12 @@ class BildController(QMainWindow):
         self.zoom = zoom # Zoom stufe
         self.config = config # Konfiguration aus der ini Datei
         self.gpxtrackpoint = [] # Alle Track Points eines GPX Tracks
+        self.amenities = [] # In OpenStreetMap eingetragene Amenities (Einrichtungen)
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0) # Ecke eines Rechtecks
         self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegende Ecke des Rechtecks
         self.setGeometry(100,100,765,765)
-        self.bild = BildPanel(x,y,zoom,config,self.gpxtrackpoint) # Baue das Bild auf
+        self.bild = BildPanel(x,y,zoom,config,self.gpxtrackpoint,self.amenities) # Baue das Bild auf
         self.setCentralWidget(self.bild)
         self.bild.addMouseListener(self)
         self.menu = QMenuBar()
@@ -314,6 +371,8 @@ class BildController(QMainWindow):
         self.PrintAction = self.file_menu.addAction("Print to PDF")
         self.DownloadTileAction = self.file_menu.addAction("Download Tile")
         self.ShowWebsitesAction = self.file_menu.addAction("Show Websites")
+        self.ShowAmenitiesAction = self.file_menu.addAction("Show Amenities")
+        self.HideAmenitiesAction = self.file_menu.addAction("Hide Amenities")
         self.gpx_menu = self.menu.addMenu("GPX")
         self.ReadGPXAction = self.gpx_menu.addAction("Read GPX Track")
         self.SaveGPXAction = self.gpx_menu.addAction("Save GPX Track as")
@@ -375,6 +434,11 @@ class BildController(QMainWindow):
         if quelle == self.ShowWebsitesAction:
             downloadOSMData(round(self.x),round(self.y),self.zoom,self.config)
             parseOSMXml(self.config)
+        if quelle == self.ShowAmenitiesAction:
+            downloadOSMData(round(self.x),round(self.y),self.zoom,self.config)
+            self.amenities = parseAmenity(self.config)
+        if quelle == self.HideAmenitiesAction:
+            self.amenities = []
         if quelle == self.PositionToGPXAction:
             # Positioniere die Karte so, das íhr Mittelpunkt mit dem Mittelpunkt des GPX Track übereinstimmt
             if len(self.gpxtrackpoint) > 0:
@@ -400,7 +464,7 @@ class BildController(QMainWindow):
                 self.gpxtrackpoint.append(trackpoint)
         if quelle == self.SaveGPXAction:
             saveGPX(self.gpxtrackpoint)
-        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint)
+        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities)
         self.bild.addMouseListener(self)
         self.setCentralWidget(self.bild)
         self.update()
@@ -418,8 +482,10 @@ class BildController(QMainWindow):
             self.x = float(self.x) + deltax
             self.y = float(self.y) + deltay
             print(self.x+0.5,self.y+0.5,self.zoom)
-            print(calculateLatLon(self.x+0.5,self.y+0.5,self.zoom))
-            self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint)
+            (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.zoom)
+            print(lat,lon)
+            printNextAmenity(lat,lon,self.amenities)
+            self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities)
             self.bild.addMouseListener(self)
             self.setCentralWidget(self.bild)
             self.update()
@@ -446,7 +512,7 @@ class BildController(QMainWindow):
                     if wort != worte[0]:
                         tim = tim + "." + wort
                 self.gpxtrackpoint.append((lat,lon,ele,tim))
-                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint)
+                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
@@ -492,7 +558,7 @@ class BildController(QMainWindow):
                             newgpxtrackpoint.append(trackpoint)
                     self.gpxtrackpoint = newgpxtrackpoint
                     self.gpxmodus = "normal"
-                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint)
+                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()

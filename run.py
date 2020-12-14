@@ -21,7 +21,7 @@ def init(pfad,config):
 def main():
     app = QApplication(sys.argv)
     config = {}
-    # Setze Default Werte für Parameter
+    # Setze Default Werte für Konfiguration
     config["temphtml"] = "C:\\Downloads\\MyOpenStreetMap.html"
     config["osmxml"] = "C:\\Downloads\\MyOpenStreetMap.xml"
     config["pdfFile"] = "C:\\Downloads\\MyOpenStreetMap.pdf"
