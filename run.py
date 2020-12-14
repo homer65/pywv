@@ -3,6 +3,7 @@ from tile import BildController
 from PyQt5.QtWidgets import QApplication
 
 def init(pfad,parameter):
+    # Lies Parameter aus ini Datei
     print(pfad)
     with open(pfad,"r") as f:
         for zeile in f:
@@ -19,6 +20,7 @@ def init(pfad,parameter):
 def main():
     app = QApplication(sys.argv)
     parameter = {}
+    # Setze Default Werte für Parameter
     parameter["temphtml"] = "C:\\Downloads\\MyOpenStreetMap.html"
     parameter["osmxml"] = "C:\\Downloads\\MyOpenStreetMap.xml"
     parameter["pdfFile"] = "C:\\Downloads\\MyOpenStreetMap.pdf"
@@ -27,6 +29,8 @@ def main():
     parameter["y"] = "34084"
     parameter["z"] = "16"
     parameter["adjustment"] = "9"
+    # ini Datei wird normalerweise über Argument beim Aufruf angegeben
+    # Wenn keine ini Datei im Aufruf angegeben wird nehme run.ini
     if len(sys.argv) > 1:
         init(sys.argv[1],parameter)
     else:
@@ -34,6 +38,7 @@ def main():
     x = float(parameter["x"])
     y = float(parameter["y"])
     z = int(parameter["z"])
+    # Aufruf des GUI
     panel = BildController(x,y,z,parameter)
     panel.show()
     sys.exit(app.exec_())

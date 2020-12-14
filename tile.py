@@ -2,7 +2,6 @@ import os
 import sys
 import math
 import platform
-from pathlib import Path
 from datetime import datetime
 from xml.dom import minidom
 from urllib import request
@@ -12,6 +11,7 @@ from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSi
 from PyQt5.QtCore import Qt
 
 def readGPX():
+    # Lese GPX Track aus Datei und gebe die enthaltenen Trackpoints zurück
     gpxtrackpoint = []
     dlg = QFileDialog()
     dlg.setFileMode(QFileDialog.ExistingFile)
@@ -41,6 +41,7 @@ def readGPX():
     return gpxtrackpoint
         
 def saveGPX(gpxtrackpoint):
+    # Speichere die Trackpoints in Datei (GPX Track)
     gpxdoc = "<?xml version='1.0' encoding='UTF-8'?>" + "\n"
     gpxdoc += "<gpx version=\"1.1\" creator=\"http://www.myoggradio.org\"" + "\n"
     gpxdoc += "xmlns=\"http://www.topografix.com/GPX/1/1\"" + "\n"
@@ -75,6 +76,8 @@ def saveGPX(gpxtrackpoint):
             print(sys.exc_info()[1])
             
 def parseOSMXml(parameter):
+    # Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen Webseiten
+    # Starte dann einen Webbrowser mit den extrahierten Daten
     websiteList = []
     xmldoc = minidom.parse(parameter["osmxml"])
     itemlist = xmldoc.getElementsByTagName('tag')
@@ -111,6 +114,8 @@ def parseOSMXml(parameter):
     print(erg)
     
 def downloadOSMData(x,y,z,parameter):
+    # Lese XML Daten von Openstreetmap für ein kleines Gebiet
+    # Speichere diese Daten in einer Datei
     latlon = calculateLatLon(x+0.5,y+0.5,z)
     lat = latlon[0]
     lon = latlon[1]
@@ -125,6 +130,7 @@ def downloadOSMData(x,y,z,parameter):
         f.write(inhalt)
     
 def downloadTile(x,y,z,parameter):
+    # Lese eine Kachel von Thunderforest und speichere diese im Tile Cache Directory
     sUrl = "https://tile.thunderforest.com/cycle/"+z+"/"+y+"/"+x+".png?apikey="+parameter["apiKey"]
     #print(sUrl)
     rc = request.urlopen(sUrl)
@@ -135,6 +141,8 @@ def downloadTile(x,y,z,parameter):
         f.write(inhalt)
         
 def getTile(x,y,z,parameter):
+    # Lese ein Thunderforest Kachel
+    # Schaue aber vorher, ob diese schon heruntergeladen wurde
     pfad = os.path.join(parameter["tileCache"],"tile."+x+"."+y+"."+z+".png")
     #pfad = parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png"
     if not os.path.isfile(pfad):
@@ -142,6 +150,7 @@ def getTile(x,y,z,parameter):
     return QImage(pfad)
 
 def calculateXY(lat,lon,z):
+    # Berechne X und Y Koordinate aus Latitude und Longitude bei vorgegebener Zoom Stufe Z
     fz = 1.0;
     for i in range(0,z):
         fz = 2.0 * fz;
@@ -150,6 +159,7 @@ def calculateXY(lat,lon,z):
     return (xtile,ytile)
     
 def calculateLatLon(y,x,z):
+    # Berechne Latitude und Longitude aus X un Y Koordinate per Zoomstufe Z
     x = float(x)
     y = float(y)
     pi = math.pi
@@ -167,6 +177,7 @@ def calculateLatLon(y,x,z):
 
 
 class TilePanel(QWidget):
+    # Zeigt ein QImage an
     
     def __init__(self,image):
         QWidget.__init__(self)
@@ -183,33 +194,40 @@ class TilePanel(QWidget):
     
     
 class BildPanel(QWidget):
+    # Baut das anzuzeigende Bild auf
     
     def __init__(self,x,y,z,parameter,gpxtrackpoint):
-        self.x = x
-        self.y = y
-        self.z = z
+        self.x = x # X Koordinate
+        self.y = y # Y Koordinate
+        self.z = z # Zoom stufe
         self.gpxtrackpoint = gpxtrackpoint
+        # Teile Koordinaten in Ganzahl Anteil und Nachkomma Stellen
+        # Da Kacheln von Thunderforest immer bei ganzzahligen Koordinaten beginnen
         x = math.trunc(x) 
         y = math.trunc(y)
         self.p = math.trunc((self.x - x) * 255.0)
         self.q = math.trunc((self.y - y) * 255.0)
         QWidget.__init__(self)
-        self.cluster = QImage(765,765,QImage.Format_RGB32)
-        temporaer = QImage(1020,1020,QImage.Format_RGB32)
+        self.cluster = QImage(765,765,QImage.Format_RGB32) # Das anzuzeigen 3X3 Bild
+        temporaer = QImage(1020,1020,QImage.Format_RGB32) # Ein temporäres 4x4 Bild
+        # Es ist einfacher zunächst ein 4x4 Bild aufzubauen und daraus das 3x3 Bild auszuschneiden
         tiles = []
+        # Lese zunächst die Kachel von Thunderforest ein
         for i in range(0,4):
             tiles1 = []
             for j in range(0,4):
                 tile = getTile(str(x-1+j), str(y-1+i), str(z), parameter)
                 tiles1.append(tile)
             tiles.append(tiles1)
+        # Baue das 4x4 Bild aus den Kacheln auf
         for i in range(0,4):
             for j in range(0,4):
                 tile = tiles[i][j] 
                 for a in range(0,255):
                     for b in range(0,255):
                         color = tile.pixel(a,b)
-                        temporaer.setPixel(i*255+a,j*255+b,color) 
+                        temporaer.setPixel(i*255+a,j*255+b,color)
+        # Zeichne ein Gitternetz ins 4x4 Bild 
         for i in range(0,4):
             x = i * 255
             for y in range(0,1020):
@@ -218,10 +236,12 @@ class BildPanel(QWidget):
             y = j * 255
             for x in range(0,1020):
                 temporaer.setPixel(x,y,1020)
+        # Schneide nun das 3x3 Bild aus dem 4x4 Bild aus
         for x in range(0,765):
             for y in range(0,765):
                 color = temporaer.pixel(x+self.q,y+self.p) 
                 self.cluster.setPixel(x,y,color)
+        # Zeichne ein Kreuz im Kartenmittelpunkt
         for x in range(358,408):
             y = 383
             color = qRgba(255,0,0,0)
@@ -230,14 +250,15 @@ class BildPanel(QWidget):
             x = 383
             color = qRgba(255,0,0,0)
             self.cluster.setPixel(x,y,color)
+        # Wenn ein GPX Track vorhanden ist, zeichne diesen
         if len(self.gpxtrackpoint) > 0:
             for trackpoint in self.gpxtrackpoint:
                 lat = trackpoint[0]
                 lon = trackpoint[1]
-                # print(lat,lon)
                 (gpx_x,gpx_y) = calculateXY(lat,lon,z)
                 deltay = (gpx_x - self.x + 1.0) * 255.0
                 deltax = (gpx_y - self.y + 1.0) * 255.0
+                # Ist der Track Point auf dem 3x3 Bild dann zeichne dort 9 rote Pixel
                 if 0 < deltax < 765 and 0 < deltay < 765:
                     color = qRgba(255,0,0,0)
                     self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)-1,color)
@@ -249,10 +270,10 @@ class BildPanel(QWidget):
                     self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)+1,color)
                     self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)+1,color)
                     self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)+1,color)
+        # Zeige das Bild
         pan = TilePanel(self.cluster)
         grid=QGridLayout()
         grid.addWidget(pan,0,0)
-        #self.setGeometry(0,0,765,765)
         self.setMinimumSize(765,765)
         self.setSizePolicy(QSizePolicy.Fixed,QSizePolicy.Fixed)
         self.setLayout(grid)
@@ -267,19 +288,20 @@ class BildPanel(QWidget):
     
     
 class BildController(QMainWindow):
+    # Die GUI für den Benutzer
     
     def __init__(self,x,y,z,parameter):
         QMainWindow.__init__(self)
-        self.x = x 
-        self.y = y 
-        self.z = z
-        self.parameter = parameter
-        self.gpxtrackpoint = []
+        self.x = x # X Koordinate
+        self.y = y # Y Koordinate
+        self.z = z # Zoom stufe
+        self.parameter = parameter # Parameter aus der ini Datei
+        self.gpxtrackpoint = [] # Alle Track Points eines GPX Tracks
         self.gpxmodus = "normal"
-        self.gpxDeletePoint1 = (0.0,0.0)
-        self.gpxDeletePoint2 = (0.0,0.0)
+        self.gpxDeletePoint1 = (0.0,0.0) # Ecke eines Rechtecks
+        self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegende Ecke des Rechtecks
         self.setGeometry(100,100,765,765)
-        self.bild = BildPanel(x,y,z,parameter,self.gpxtrackpoint)
+        self.bild = BildPanel(x,y,z,parameter,self.gpxtrackpoint) # Baue das Bild auf
         self.setCentralWidget(self.bild)
         self.bild.addMouseListener(self)
         self.menu = QMenuBar()
@@ -305,6 +327,7 @@ class BildController(QMainWindow):
         self.setMenuBar(self.menu)
         
     def myprint(self):
+        # Gebe PDF aus
         printer = QPrinter()
         printer.setOutputFormat(QPrinter.PdfFormat)
         printer.setOutputFileName(self.parameter["pdfFile"])
@@ -320,16 +343,18 @@ class BildController(QMainWindow):
             self.gpxmodus = "addPoint"
         if quelle == self.deleteRectangleAction:
             self.gpxmodus = "deleteRectangle"
-            self.gpxDeletePoint1 = (0.0,0.0)
-            self.gpxDeletePoint2 = (0.0,0.0)
+            self.gpxDeletePoint1 = (0.0,0.0) # Eckpunkt eines Rechtecks
+            self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegender Eckpunkt des Rechtecks
         if quelle == self.PrintAction:
             self.myprint()
         if quelle == self.ZoomUpAction:
+            # Zoom Stufe herabsetzen bis zur minimalen Zoom Stufe 2
             if self.z > 2:
                 self.z = self.z - 1
                 self.x = (self.x / 2) - 0.25
                 self.y = (self.y / 2) - 0.25
         if quelle == self.ZoomDownAction:
+            # Zoom Stufe heraufsetzen bis zur maximalen Zoom Stufe 18
             if self.z < 18:
                 self.z = self.z + 1
                 self.x = (2 * self.x) + 0.5
@@ -343,6 +368,7 @@ class BildController(QMainWindow):
         if quelle == self.SouthAction:
             self.x = self.x - 1.0
         if quelle == self.DownloadTileAction:
+            # Lade Kacheln nochmal von Tunderforest in den Cache, auch wenn sie da schon vorhandenen sind
             x = math.trunc(self.x)
             y = math.trunc(self.y)
             for i in range(0,4):
@@ -352,6 +378,7 @@ class BildController(QMainWindow):
             downloadOSMData(round(self.x),round(self.y),self.z,self.parameter)
             parseOSMXml(self.parameter)
         if quelle == self.PositionToGPXAction:
+            # Positioniere die Karte so, das íhr Mittelpunkt mit dem Mittelpunkt des GPX Track übereinstimmt
             if len(self.gpxtrackpoint) > 0:
                 dlat = 0.0
                 dlon = 0.0
@@ -369,6 +396,7 @@ class BildController(QMainWindow):
                 self.x = self.x - 0.5
                 self.y = self.y - 0.5
         if quelle == self.ReadGPXAction:
+            # Lese einen GPX Track ein und füge diesen zum bestehen GPX Track hinzu
             newgpxtrackpoint = readGPX()
             for trackpoint in newgpxtrackpoint:
                 self.gpxtrackpoint.append(trackpoint)
@@ -381,6 +409,7 @@ class BildController(QMainWindow):
     
     def mousePressed(self,ev):
         if ev.button() == Qt.LeftButton:
+            # Mache den links angeklickten Punkt zum Kartenmittelpunkt
             pos = ev.pos()
             a = pos.x()
             b = pos.y()
@@ -398,6 +427,7 @@ class BildController(QMainWindow):
             self.update()
         if ev.button() == Qt.RightButton:
             if self.gpxmodus == "addPoint":
+                # Füge den rechts angeklickten Punkt zum GPX Track hinzu
                 pos = ev.pos()
                 a = pos.x()
                 b = pos.y()
@@ -423,6 +453,7 @@ class BildController(QMainWindow):
                 self.setCentralWidget(self.bild)
                 self.update()
             if self.gpxmodus == "deleteRectangle":
+                # Lösche alle Track Points, die sich im ausgewhlten Rechteck befinden
                 pos = ev.pos()
                 a = pos.x()
                 b = pos.y()
