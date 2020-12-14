@@ -262,15 +262,9 @@ class BildPanel(QWidget):
                 # Ist der Track Point auf dem 3x3 Bild dann zeichne dort 9 rote Pixel
                 if 0 < deltax < 765 and 0 < deltay < 765:
                     color = qRgba(255,0,0,0)
-                    self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)-1,color)
-                    self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)-1,color)
-                    self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)-1,color)
-                    self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)-0,color)
-                    self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)-0,color)
-                    self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)-0,color)
-                    self.cluster.setPixel(math.trunc(deltax)-1,math.trunc(deltay)+1,color)
-                    self.cluster.setPixel(math.trunc(deltax)-0,math.trunc(deltay)+1,color)
-                    self.cluster.setPixel(math.trunc(deltax)+1,math.trunc(deltay)+1,color)
+                    for i in range(0,3):
+                        for j in range(0,3):
+                            self.cluster.setPixel(math.trunc(deltax)-1+i,math.trunc(deltay)-1+j,color)
         # Zeige das Bild
         pan = TilePanel(self.cluster)
         grid=QGridLayout()
