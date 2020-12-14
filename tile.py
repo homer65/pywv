@@ -3,6 +3,7 @@ import os
 import sys
 import math
 import platform
+from pathlib import Path
 from datetime import datetime
 from xml.dom import minidom
 from urllib import request
@@ -141,15 +142,13 @@ def downloadTile(x,y,z,parameter):
     tileFileName = os.path.join(parameter["tileCache"],"tile."+x+"."+y+"."+z+".png")
     with open(tileFileName,"wb") as f:
         f.write(inhalt)
-        
-def getTile(x,y,z,parameter):
-    # Lese ein Thunderforest Kachel
-    # Schaue aber vorher, ob diese schon heruntergeladen wurde
-    pfad = os.path.join(parameter["tileCache"],"tile."+x+"."+y+"."+z+".png")
-    #pfad = parameter["tileCache"] + "\\tile."+x+"."+y+"."+z+".png"
-    if not os.path.isfile(pfad):
-        downloadTile(x,y,z,parameter)
-    return QImage(pfad)
+      
+def get_tile(x, y, z, parameter):
+    # Lese ein Thunderforest/Openstreetmap Kachel
+    path = Path(parameter["tileCache"]) / f"tile.{x}.{y}.{z}.png"
+    if not path.is_file():
+        downloadTile(str(x), str(y), str(z), parameter)
+    return QImage(str(path))
 
 def calculateXY(lat,lon,z):
     # Berechne X und Y Koordinate aus Latitude und Longitude bei vorgegebener Zoom Stufe Z
@@ -214,11 +213,11 @@ class BildPanel(QWidget):
         temporaer = QImage(1020,1020,QImage.Format_RGB32) # Ein temporäres 4x4 Bild
         # Es ist einfacher zunächst ein 4x4 Bild aufzubauen und daraus das 3x3 Bild auszuschneiden
         tiles = []
-        # Lese zunächst die Kachel von Thunderforest ein
+        # Lese zunächst die Kachel von Thunderforest/OpenStreetMap ein
         for i in range(0,4):
             tiles1 = []
             for j in range(0,4):
-                tile = getTile(str(x-1+j), str(y-1+i), str(z), parameter)
+                tile = get_tile((x-1+j), (y-1+i), (z), parameter)
                 tiles1.append(tile)
             tiles.append(tiles1)
         # Baue das 4x4 Bild aus den Kacheln auf
