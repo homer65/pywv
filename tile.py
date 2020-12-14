@@ -210,25 +210,14 @@ class BildPanel(QWidget):
                     for b in range(0,255):
                         color = tile.pixel(a,b)
                         temporaer.setPixel(i*255+a,j*255+b,color) 
-        color = qRgba(0,255,0,0)
-        x = 255
-        for y in range(0,1020):
-            temporaer.setPixel(x,y,1020)
-        x = 510
-        for y in range(0,1020):
-            temporaer.setPixel(x,y,1020)            
-        x = 765
-        for y in range(0,1020):
-            temporaer.setPixel(x,y,1020)
-        y = 255
-        for x in range(0,1020):
-            temporaer.setPixel(x,y,1020)
-        y = 510
-        for x in range(0,1020):
-            temporaer.setPixel(x,y,1020)            
-        y = 765
-        for x in range(0,1020):
-            temporaer.setPixel(x,y,1020)
+        for i in range(0,4):
+            x = i * 255
+            for y in range(0,1020):
+                temporaer.setPixel(x,y,1020)
+        for j in range(0,4):
+            y = j * 255
+            for x in range(0,1020):
+                temporaer.setPixel(x,y,1020)
         for x in range(0,765):
             for y in range(0,765):
                 color = temporaer.pixel(x+self.q,y+self.p) 
