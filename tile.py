@@ -389,7 +389,7 @@ class BildController(QMainWindow):
                     anzahl = anzahl + 1
                 dlat = dlat / anzahl
                 dlon = dlon / anzahl
-                self.z = 12
+                self.zoom = 12
                 (self.x,self.y) = calculateXY(dlat,dlon,self.zoom)
                 self.x = self.x - 0.5
                 self.y = self.y - 0.5
