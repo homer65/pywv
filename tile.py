@@ -36,7 +36,6 @@ def readGPX():
                     lat = item.attributes['lat'].value
                     lon = item.attributes['lon'].value
                     gpxtrackpoint.append((float(lat),float(lon),ele,tim))
-                    #print(lat,lon,ele,tim)
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
@@ -77,11 +76,11 @@ def saveGPX(gpxtrackpoint):
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
             
-def parseOSMXml(parameter):
+def parseOSMXml(config):
     # Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen Webseiten
     # Starte dann einen Webbrowser mit den extrahierten Daten
     websiteList = []
-    xmldoc = minidom.parse(parameter["osmxml"])
+    xmldoc = minidom.parse(config["osmxml"])
     itemlist = xmldoc.getElementsByTagName('tag')
     for item in itemlist:
         k = item.attributes['k'].value
@@ -97,7 +96,7 @@ def parseOSMXml(parameter):
         if k == "link":
             v = item.attributes['v'].value
             websiteList.append(v)
-    f = open(parameter["temphtml"],'w')
+    f = open(config["temphtml"],'w')
     f.write("<html>" + "\n")
     f.write("<body>" + "\n")
     for website in websiteList:
@@ -109,13 +108,13 @@ def parseOSMXml(parameter):
     ossystem = platform.system()
     cmd = ""
     if ossystem == "Linux":
-        cmd = "firefox " + parameter["temphtml"]
+        cmd = "firefox " + config["temphtml"]
     if ossystem == "Windows":
-        cmd = "start " + parameter["temphtml"]
+        cmd = "start " + config["temphtml"]
     erg = os.system(cmd)
     print(erg)
     
-def downloadOSMData(x,y,z,parameter):
+def downloadOSMData(x,y,z,config):
     # Lese XML Daten von Openstreetmap für ein kleines Gebiet
     # Speichere diese Daten in einer Datei
     latlon = calculateLatLon(x+0.5,y+0.5,z)
@@ -128,26 +127,26 @@ def downloadOSMData(x,y,z,parameter):
     sUrl = "https://api.openstreetmap.org/api/0.6/map?bbox="+minlon+","+minlat+","+maxlon+","+maxlat
     rc = request.urlopen(sUrl)
     inhalt = rc.read()
-    with open(parameter["osmxml"],"wb") as f:
+    with open(config["osmxml"],"wb") as f:
         f.write(inhalt)
     
-def downloadTile(x,y,z,parameter):
+def downloadTile(x,y,z,config):
     # Lese eine Kachel von Thunderforest oder OpenStreetMap und speichere diese im Tile Cache Directory
-    sUrl = "https://tile.thunderforest.com/cycle/"+z+"/"+y+"/"+x+".png?apikey="+parameter["apiKey"]
-    if parameter["tileserver"] == "openstreetmap":
+    sUrl = "https://tile.thunderforest.com/cycle/"+z+"/"+y+"/"+x+".png?apikey="+config["apiKey"]
+    if config["tileserver"] == "openstreetmap":
         sUrl = "https://a.tile.openstreetmap.de/"+z+"/"+y+"/"+x+".png"
     rc = request.urlopen(sUrl)
     print(rc.code)
     inhalt = rc.read()
-    tileFileName = os.path.join(parameter["tileCache"],"tile."+x+"."+y+"."+z+".png")
+    tileFileName = os.path.join(config["tileCache"],"tile."+x+"."+y+"."+z+".png")
     with open(tileFileName,"wb") as f:
         f.write(inhalt)
       
-def get_tile(x, y, z, parameter):
+def get_tile(x, y, z, config):
     # Lese ein Thunderforest/Openstreetmap Kachel
-    path = Path(parameter["tileCache"]) / f"tile.{x}.{y}.{z}.png"
+    path = Path(config["tileCache"]) / f"tile.{x}.{y}.{z}.png"
     if not path.is_file():
-        downloadTile(str(x), str(y), str(z), parameter)
+        downloadTile(str(x), str(y), str(z), config)
     return QImage(str(path))
 
 def calculateXY(lat,lon,z):
@@ -197,7 +196,7 @@ class TilePanel(QWidget):
 class BildPanel(QWidget):
     # Baut das anzuzeigende Bild auf
     
-    def __init__(self,x,y,z,parameter,gpxtrackpoint):
+    def __init__(self,x,y,z,config,gpxtrackpoint):
         self.x = x # X Koordinate
         self.y = y # Y Koordinate
         self.z = z # Zoom stufe
@@ -217,7 +216,7 @@ class BildPanel(QWidget):
         for i in range(0,4):
             tiles1 = []
             for j in range(0,4):
-                tile = get_tile((x-1+j), (y-1+i), (z), parameter)
+                tile = get_tile((x-1+j), (y-1+i), (z), config)
                 tiles1.append(tile)
             tiles.append(tiles1)
         # Baue das 4x4 Bild aus den Kacheln auf
@@ -285,18 +284,18 @@ class BildPanel(QWidget):
 class BildController(QMainWindow):
     # Die GUI für den Benutzer
     
-    def __init__(self,x,y,z,parameter):
+    def __init__(self,x,y,z,config):
         QMainWindow.__init__(self)
         self.x = x # X Koordinate
         self.y = y # Y Koordinate
         self.z = z # Zoom stufe
-        self.parameter = parameter # Parameter aus der ini Datei
+        self.config = config # Konfiguration aus der ini Datei
         self.gpxtrackpoint = [] # Alle Track Points eines GPX Tracks
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0) # Ecke eines Rechtecks
         self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegende Ecke des Rechtecks
         self.setGeometry(100,100,765,765)
-        self.bild = BildPanel(x,y,z,parameter,self.gpxtrackpoint) # Baue das Bild auf
+        self.bild = BildPanel(x,y,z,config,self.gpxtrackpoint) # Baue das Bild auf
         self.setCentralWidget(self.bild)
         self.bild.addMouseListener(self)
         self.menu = QMenuBar()
@@ -325,7 +324,7 @@ class BildController(QMainWindow):
         # Gebe PDF aus
         printer = QPrinter()
         printer.setOutputFormat(QPrinter.PdfFormat)
-        printer.setOutputFileName(self.parameter["pdfFile"])
+        printer.setOutputFileName(self.config["pdfFile"])
         qp = QPainter()
         qp.begin(printer)
         qp.drawPixmap(0,0,QPixmap.fromImage(self.bild.cluster))
@@ -368,10 +367,10 @@ class BildController(QMainWindow):
             y = math.trunc(self.y)
             for i in range(0,4):
                 for j in range(0,4):
-                    downloadTile(str(x-1+i),str(y-1+j),str(self.z),self.parameter)
+                    downloadTile(str(x-1+i),str(y-1+j),str(self.z),self.config)
         if quelle == self.ShowWebsitesAction:
-            downloadOSMData(round(self.x),round(self.y),self.z,self.parameter)
-            parseOSMXml(self.parameter)
+            downloadOSMData(round(self.x),round(self.y),self.z,self.config)
+            parseOSMXml(self.config)
         if quelle == self.PositionToGPXAction:
             # Positioniere die Karte so, das íhr Mittelpunkt mit dem Mittelpunkt des GPX Track übereinstimmt
             if len(self.gpxtrackpoint) > 0:
@@ -397,7 +396,7 @@ class BildController(QMainWindow):
                 self.gpxtrackpoint.append(trackpoint)
         if quelle == self.SaveGPXAction:
             saveGPX(self.gpxtrackpoint)
-        self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrackpoint)
+        self.bild = BildPanel(self.x,self.y,self.z,self.config,self.gpxtrackpoint)
         self.bild.addMouseListener(self)
         self.setCentralWidget(self.bild)
         self.update()
@@ -408,7 +407,7 @@ class BildController(QMainWindow):
             pos = ev.pos()
             a = pos.x()
             b = pos.y()
-            delta = 383 + int(self.parameter["adjustment"])
+            delta = 383 + int(self.config["adjustment"])
             deltax = (float(b-delta) / 255.0) 
             deltay = (float(a-delta) / 255.0)
             print(">>>",a,b)
@@ -416,7 +415,7 @@ class BildController(QMainWindow):
             self.y = float(self.y) + deltay
             print(self.x+0.5,self.y+0.5,self.z)
             print(calculateLatLon(self.x+0.5,self.y+0.5,self.z))
-            self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrackpoint)
+            self.bild = BildPanel(self.x,self.y,self.z,self.config,self.gpxtrackpoint)
             self.bild.addMouseListener(self)
             self.setCentralWidget(self.bild)
             self.update()
@@ -426,7 +425,7 @@ class BildController(QMainWindow):
                 pos = ev.pos()
                 a = pos.x()
                 b = pos.y()
-                delta = 383 + int(self.parameter["adjustment"])
+                delta = 383 + int(self.config["adjustment"])
                 deltax = (float(b-delta) / 255.0) 
                 deltay = (float(a-delta) / 255.0)
                 print(">>>",a,b)
@@ -443,7 +442,7 @@ class BildController(QMainWindow):
                     if wort != worte[0]:
                         tim = tim + "." + wort
                 self.gpxtrackpoint.append((lat,lon,ele,tim))
-                self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrackpoint)
+                self.bild = BildPanel(self.x,self.y,self.z,self.config,self.gpxtrackpoint)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
@@ -452,7 +451,7 @@ class BildController(QMainWindow):
                 pos = ev.pos()
                 a = pos.x()
                 b = pos.y()
-                delta = 383 + int(self.parameter["adjustment"])
+                delta = 383 + int(self.config["adjustment"])
                 deltax = (float(b-delta) / 255.0) 
                 deltay = (float(a-delta) / 255.0)
                 print(">>>",a,b)
@@ -489,7 +488,7 @@ class BildController(QMainWindow):
                             newgpxtrackpoint.append(trackpoint)
                     self.gpxtrackpoint = newgpxtrackpoint
                     self.gpxmodus = "normal"
-                self.bild = BildPanel(self.x,self.y,self.z,self.parameter,self.gpxtrackpoint)
+                self.bild = BildPanel(self.x,self.y,self.z,self.config,self.gpxtrackpoint)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()

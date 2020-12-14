@@ -3,8 +3,8 @@ import sys
 from tile import BildController
 from PyQt5.QtWidgets import QApplication
 
-def init(pfad,parameter):
-    # Lies Parameter aus ini Datei
+def init(pfad,config):
+    # Lies Configuration aus ini Datei
     print(pfad)
     with open(pfad,"r") as f:
         for zeile in f:
@@ -16,32 +16,32 @@ def init(pfad,parameter):
                     wert = str(float(wert) - 0.5)
                 if key == "y":
                     wert = str(float(wert) - 0.5)
-                parameter[key] = wert
+                config[key] = wert
 
 def main():
     app = QApplication(sys.argv)
-    parameter = {}
+    config = {}
     # Setze Default Werte für Parameter
-    parameter["temphtml"] = "C:\\Downloads\\MyOpenStreetMap.html"
-    parameter["osmxml"] = "C:\\Downloads\\MyOpenStreetMap.xml"
-    parameter["pdfFile"] = "C:\\Downloads\\MyOpenStreetMap.pdf"
-    parameter["tileCache"] = "C:\\Downloads\\TileCache"
-    parameter["x"] = "21802"
-    parameter["y"] = "34084"
-    parameter["z"] = "16"
-    parameter["adjustment"] = "9"
-    parameter["tileserver"] = "thunderforest"
+    config["temphtml"] = "C:\\Downloads\\MyOpenStreetMap.html"
+    config["osmxml"] = "C:\\Downloads\\MyOpenStreetMap.xml"
+    config["pdfFile"] = "C:\\Downloads\\MyOpenStreetMap.pdf"
+    config["tileCache"] = "C:\\Downloads\\TileCache"
+    config["x"] = "21802"
+    config["y"] = "34084"
+    config["z"] = "16"
+    config["adjustment"] = "9"
+    config["tileserver"] = "thunderforest"
     # ini Datei wird normalerweise über Argument beim Aufruf angegeben
     # Wenn keine ini Datei im Aufruf angegeben wird nehme run.ini
     if len(sys.argv) > 1:
-        init(sys.argv[1],parameter)
+        init(sys.argv[1],config)
     else:
-        init("run.ini",parameter)
-    x = float(parameter["x"])
-    y = float(parameter["y"])
-    z = int(parameter["z"])
+        init("run.ini",config)
+    x = float(config["x"])
+    y = float(config["y"])
+    z = int(config["z"])
     # Aufruf des GUI
-    panel = BildController(x,y,z,parameter)
+    panel = BildController(x,y,z,config)
     panel.show()
     sys.exit(app.exec_())
     
