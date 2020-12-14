@@ -30,6 +30,7 @@ def main():
     parameter["y"] = "34084"
     parameter["z"] = "16"
     parameter["adjustment"] = "9"
+    parameter["tileserver"] = "thunderforest"
     # ini Datei wird normalerweise über Argument beim Aufruf angegeben
     # Wenn keine ini Datei im Aufruf angegeben wird nehme run.ini
     if len(sys.argv) > 1:
