@@ -35,7 +35,7 @@ def main():
     config["filter2"] = "bbq"
     config["filter3"] = "biergarten"
     config["filter4"] = "cafe"
-    config["filter5"] = "fast-food"
+    config["filter5"] = "fast_food"
     config["filter6"] = "ice_cream"
     config["filter7"] = "pub"
     config["filter8"] = "restaurant"
