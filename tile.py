@@ -374,6 +374,7 @@ class BildController(QMainWindow):
         self.gpxDeletePoint1 = (0.0,0.0) # Ecke eines Rechtecks
         self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegende Ecke des Rechtecks
         self.setGeometry(100,100,765,765)
+        self.setWindowTitle("OpenStreetMap / Thunderforest")
         self.bild = BildPanel(x,y,zoom,config,self.gpxtrackpoint,self.amenities,self.amenity_typ) # Baue das Bild auf
         self.setCentralWidget(self.bild)
         self.bild.addMouseListener(self)
