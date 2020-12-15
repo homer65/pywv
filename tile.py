@@ -556,10 +556,7 @@ class BildController(QMainWindow):
                 downloadOSMData(self.x,self.y,self.zoom,self.config)
                 self.amenities = parseAmenity(self.config)
             printNextAmenity(lat,lon,self.amenities,self.amenity_typ)
-            self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
-            self.bild.addMouseListener(self)
-            self.setCentralWidget(self.bild)
-            self.update()
+            self.initUI()
         if ev.button() == Qt.RightButton:
             if self.gpxmodus == "addPoint":
                 # Füge den rechts angeklickten Punkt zum GPX Track hinzu
@@ -583,10 +580,7 @@ class BildController(QMainWindow):
                     if wort != worte[0]:
                         tim = tim + "." + wort
                 self.gpxtrackpoint.append((lat,lon,ele,tim))
-                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
-                self.bild.addMouseListener(self)
-                self.setCentralWidget(self.bild)
-                self.update()
+                self.initUI()
             if self.gpxmodus == "deleteRectangle":
                 # Lösche alle Track Points, die sich im ausgewhlten Rechteck befinden
                 pos = ev.pos()
@@ -629,8 +623,4 @@ class BildController(QMainWindow):
                             newgpxtrackpoint.append(trackpoint)
                     self.gpxtrackpoint = newgpxtrackpoint
                     self.gpxmodus = "normal"
-                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
-                self.bild.addMouseListener(self)
-                self.setCentralWidget(self.bild)
-                self.update()
-    
+                self.initUI()
