@@ -12,17 +12,24 @@ from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
 from PyQt5.QtCore import Qt
 
-def printNextAmenity(lat,lon,amenities):
+def printNextAmenity(lat,lon,amenities,amenity_typ):
     """ Drucke die nächstgelegene Amenity an """
     minAmenity = None
     minAbstand = 1000000000.0
     for amenity in amenities:
+        typ = amenity["amenity"]
         alat = amenity["lat"]
         alon = amenity["lon"]
         abstand = (alat-lat)*(alat-lat) + (alon-lon)*(alon-lon)
-        if abstand < minAbstand:
-            minAbstand = abstand
-            minAmenity = amenity
+        ok = False
+        if amenity_typ == None:
+            ok = True
+        elif amenity_typ == typ:
+            ok = True
+        if ok:
+            if abstand < minAbstand:
+                minAbstand = abstand
+                minAmenity = amenity
     if not (minAmenity == None):
         keylist = list(minAmenity)
         for key in keylist:
@@ -239,12 +246,13 @@ class TilePanel(QWidget):
 class BildPanel(QWidget):
     """ Baut das anzuzeigende Bild auf """
     
-    def __init__(self,x,y,zoom,config,gpxtrackpoint,amenities):
+    def __init__(self,x,y,zoom,config,gpxtrackpoint,amenities,amenity_typ):
         self.x = x # X Koordinate
         self.y = y # Y Koordinate
         self.zoom = zoom # Zoom stufe
         self.gpxtrackpoint = gpxtrackpoint
         self.amenities = amenities
+        self.amenity_typ = amenity_typ
         flagge = QImage("flagge.png") # Bild um Amenity anzuzeigen
         # Teile Koordinaten in Ganzahl Anteil und Nachkomma Stellen
         # Da Kacheln von Thunderforest immer bei ganzzahligen Koordinaten beginnen
@@ -312,13 +320,19 @@ class BildPanel(QWidget):
         # Wenn Amenities vorhanden sind, zeichne entsprechende Flaggen
         if len(self.amenities) > 0:
             for amenity in self.amenities:
+                typ = amenity["amenity"]
                 lat = amenity["lat"]
                 lon = amenity["lon"]
                 (amenity_x,amenity_y) = calculateXY(lat,lon,zoom)
                 deltay = (amenity_x - self.x + 1.0) * 255.0
                 deltax = (amenity_y - self.y + 1.0) * 255.0
-                # Ist die Amenity auf dem 3x3 Bild dann zeichne dort eine Flagge
-                if 0 < deltax < 765 and 0 < deltay < 765:                
+                ok = False
+                if self.amenity_typ == None:
+                    ok = True
+                elif self.amenity_typ == typ:
+                    ok = True
+                # Ist die Amenity nicht gefiltert und auf dem 3x3 Bild dann zeichne dort eine Flagge
+                if 0 < deltax < 765 and 0 < deltay < 765 and ok:                
                     for i in range(0,16):
                         for j in range(0,16):
                             color = flagge.pixel(i,j)
@@ -355,11 +369,12 @@ class BildController(QMainWindow):
         self.config = config # Konfiguration aus der ini Datei
         self.gpxtrackpoint = [] # Alle Track Points eines GPX Tracks
         self.amenities = [] # In OpenStreetMap eingetragene Amenities (Einrichtungen)
+        self.amenity_typ = None # Filter welche Amenity angezeigt werden
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0) # Ecke eines Rechtecks
         self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegende Ecke des Rechtecks
         self.setGeometry(100,100,765,765)
-        self.bild = BildPanel(x,y,zoom,config,self.gpxtrackpoint,self.amenities) # Baue das Bild auf
+        self.bild = BildPanel(x,y,zoom,config,self.gpxtrackpoint,self.amenities,self.amenity_typ) # Baue das Bild auf
         self.setCentralWidget(self.bild)
         self.bild.addMouseListener(self)
         self.menu = QMenuBar()
@@ -376,6 +391,13 @@ class BildController(QMainWindow):
         self.ShowWebsitesAction = self.file_menu.addAction("Show Websites")
         self.ShowAmenitiesAction = self.file_menu.addAction("Show Amenities")
         self.HideAmenitiesAction = self.file_menu.addAction("Hide Amenities")
+        self.filter_menu = self.menu.addMenu("Filter")
+        self.ResetFilterAction = self.filter_menu.addAction("Reset Filter")
+        self.RestaurantAction = self.filter_menu.addAction("Restaurant")
+        self.FuelAction = self.filter_menu.addAction("Fuel")
+        self.PubAction = self.filter_menu.addAction("Pub")
+        self.DoctorsAction = self.filter_menu.addAction("Doctors")
+        self.DentistAction = self.filter_menu.addAction("Dentist")
         self.gpx_menu = self.menu.addMenu("GPX")
         self.ReadGPXAction = self.gpx_menu.addAction("Read GPX Track")
         self.SaveGPXAction = self.gpx_menu.addAction("Save GPX Track as")
@@ -442,6 +464,18 @@ class BildController(QMainWindow):
             self.amenities = parseAmenity(self.config)
         if quelle == self.HideAmenitiesAction:
             self.amenities = []
+        if quelle == self.ResetFilterAction:
+            self.amenity_typ = None
+        if quelle == self.RestaurantAction:
+            self.amenity_typ = "restaurant"
+        if quelle == self.FuelAction:
+            self.amenity_typ = "fuel"
+        if quelle == self.PubAction:
+            self.amenity_typ = "pub"
+        if quelle == self.DoctorsAction:
+            self.amenity_typ = "doctors"
+        if quelle == self.DentistAction:
+            self.amenity_typ = "dentist"
         if quelle == self.PositionToGPXAction:
             # Positioniere die Karte so, das íhr Mittelpunkt mit dem Mittelpunkt des GPX Track übereinstimmt
             if len(self.gpxtrackpoint) > 0:
@@ -467,7 +501,7 @@ class BildController(QMainWindow):
                 self.gpxtrackpoint.append(trackpoint)
         if quelle == self.SaveGPXAction:
             saveGPX(self.gpxtrackpoint)
-        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities)
+        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
         self.bild.addMouseListener(self)
         self.setCentralWidget(self.bild)
         self.update()
@@ -487,8 +521,8 @@ class BildController(QMainWindow):
             print(self.x+0.5,self.y+0.5,self.zoom)
             (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.zoom)
             print(lat,lon)
-            printNextAmenity(lat,lon,self.amenities)
-            self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities)
+            printNextAmenity(lat,lon,self.amenities,self.amenity_typ)
+            self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
             self.bild.addMouseListener(self)
             self.setCentralWidget(self.bild)
             self.update()
@@ -515,7 +549,7 @@ class BildController(QMainWindow):
                     if wort != worte[0]:
                         tim = tim + "." + wort
                 self.gpxtrackpoint.append((lat,lon,ele,tim))
-                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities)
+                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
@@ -561,7 +595,7 @@ class BildController(QMainWindow):
                             newgpxtrackpoint.append(trackpoint)
                     self.gpxtrackpoint = newgpxtrackpoint
                     self.gpxmodus = "normal"
-                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities)
+                self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
                 self.bild.addMouseListener(self)
                 self.setCentralWidget(self.bild)
                 self.update()
