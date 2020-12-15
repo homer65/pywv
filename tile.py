@@ -24,7 +24,7 @@ def printNextAmenity(lat,lon,amenities,amenity_typ):
         ok = False
         if amenity_typ == None:
             ok = True
-        elif amenity_typ == typ:
+        elif amenity_typ in typ:
             ok = True
         if ok:
             if abstand < minAbstand:
@@ -329,7 +329,7 @@ class BildPanel(QWidget):
                 ok = False
                 if self.amenity_typ == None:
                     ok = True
-                elif self.amenity_typ == typ:
+                elif self.amenity_typ in typ:
                     ok = True
                 # Ist die Amenity nicht gefiltert und auf dem 3x3 Bild dann zeichne dort eine Flagge
                 if 0 < deltax < 765 and 0 < deltay < 765 and ok:                
