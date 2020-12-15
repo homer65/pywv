@@ -457,10 +457,10 @@ class BildController(QMainWindow):
                 for j in range(0,4):
                     downloadTile(str(x-1+i),str(y-1+j),str(self.zoom),self.config)
         if quelle == self.ShowWebsitesAction:
-            downloadOSMData(round(self.x),round(self.y),self.zoom,self.config)
+            downloadOSMData(self.x+0.5,self.y+0.5,self.zoom,self.config)
             parseOSMXml(self.config)
         if quelle == self.ShowAmenitiesAction:
-            downloadOSMData(round(self.x),round(self.y),self.zoom,self.config)
+            downloadOSMData(self.x+0.5,self.y+0.5,self.zoom,self.config)
             self.amenities = parseAmenity(self.config)
         if quelle == self.HideAmenitiesAction:
             self.amenities = []
@@ -521,6 +521,9 @@ class BildController(QMainWindow):
             print(self.x+0.5,self.y+0.5,self.zoom)
             (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.zoom)
             print(lat,lon)
+            if len(self.amenities) > 0:
+                downloadOSMData(self.x+0.5,self.y+0.5,self.zoom,self.config)
+                self.amenities = parseAmenity(self.config)
             printNextAmenity(lat,lon,self.amenities,self.amenity_typ)
             self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
             self.bild.addMouseListener(self)
