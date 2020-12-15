@@ -39,7 +39,7 @@ def main():
     config["filter6"] = "ice_cream"
     config["filter7"] = "pub"
     config["filter8"] = "restaurant"
-    config["filter9"] = "charging-station"
+    config["filter9"] = "charging_station"
     config["filter10"] = "fuel"
     # ini Datei wird normalerweise über Argument beim Aufruf angegeben
     # Wenn keine ini Datei im Aufruf angegeben wird nehme run.ini
