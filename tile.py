@@ -399,6 +399,11 @@ class BildController(QMainWindow):
         self.Filter3Action = self.filter_menu.addAction(self.config["filter3"])
         self.Filter4Action = self.filter_menu.addAction(self.config["filter4"])
         self.Filter5Action = self.filter_menu.addAction(self.config["filter5"])
+        self.Filter6Action = self.filter_menu.addAction(self.config["filter6"])
+        self.Filter7Action = self.filter_menu.addAction(self.config["filter7"])
+        self.Filter8Action = self.filter_menu.addAction(self.config["filter8"])
+        self.Filter9Action = self.filter_menu.addAction(self.config["filter9"])
+        self.Filter10Action = self.filter_menu.addAction(self.config["filter10"])
         self.gpx_menu = self.menu.addMenu("GPX")
         self.ReadGPXAction = self.gpx_menu.addAction("Read GPX Track")
         self.SaveGPXAction = self.gpx_menu.addAction("Save GPX Track as")
@@ -476,7 +481,17 @@ class BildController(QMainWindow):
         if quelle == self.Filter4Action:
             self.amenity_typ = self.config["filter4"]
         if quelle == self.Filter5Action:
-            self.amenity_typ = self.config["filter5"]
+            self.amenity_typ = self.config["filter5"]            
+        if quelle == self.Filter6Action:
+            self.amenity_typ = self.config["filter6"]
+        if quelle == self.Filter7Action:
+            self.amenity_typ = self.config["filter7"]
+        if quelle == self.Filter8Action:
+            self.amenity_typ = self.config["filter8"]
+        if quelle == self.Filter9Action:
+            self.amenity_typ = self.config["filter9"]
+        if quelle == self.Filter10Action:
+            self.amenity_typ = self.config["filter10"]            
         if quelle == self.PositionToGPXAction:
             # Positioniere die Karte so, das íhr Mittelpunkt mit dem Mittelpunkt des GPX Track übereinstimmt
             if len(self.gpxtrackpoint) > 0:
