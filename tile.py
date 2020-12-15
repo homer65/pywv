@@ -323,7 +323,10 @@ class BildPanel(QWidget):
                         for j in range(0,16):
                             color = flagge.pixel(i,j)
                             if not color == 0:
-                                self.cluster.setPixel(deltax+i,deltay+j,color)                            
+                                posx = deltax + i 
+                                posy = deltay + j
+                                if 0 < posx < 765 and 0 < posy < 765:  
+                                    self.cluster.setPixel(posx,posy,color)                            
         # Zeige das Bild
         pan = TilePanel(self.cluster)
         grid=QGridLayout()
