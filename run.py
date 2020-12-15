@@ -31,6 +31,11 @@ def main():
     config["zoom"] = "16"
     config["adjustment"] = "9"
     config["tileserver"] = "thunderforest"
+    config["filter1"] = "restaurant"
+    config["filter2"] = "pub"
+    config["filter3"] = "fuel"
+    config["filter4"] = "doctors"
+    config["filter5"] = "dentist"
     # ini Datei wird normalerweise über Argument beim Aufruf angegeben
     # Wenn keine ini Datei im Aufruf angegeben wird nehme run.ini
     if len(sys.argv) > 1:

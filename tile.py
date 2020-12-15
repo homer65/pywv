@@ -393,11 +393,11 @@ class BildController(QMainWindow):
         self.HideAmenitiesAction = self.file_menu.addAction("Hide Amenities")
         self.filter_menu = self.menu.addMenu("Filter")
         self.ResetFilterAction = self.filter_menu.addAction("Reset Filter")
-        self.RestaurantAction = self.filter_menu.addAction("Restaurant")
-        self.FuelAction = self.filter_menu.addAction("Fuel")
-        self.PubAction = self.filter_menu.addAction("Pub")
-        self.DoctorsAction = self.filter_menu.addAction("Doctors")
-        self.DentistAction = self.filter_menu.addAction("Dentist")
+        self.Filter1Action = self.filter_menu.addAction(self.config["filter1"])
+        self.Filter2Action = self.filter_menu.addAction(self.config["filter2"])
+        self.Filter3Action = self.filter_menu.addAction(self.config["filter3"])
+        self.Filter4Action = self.filter_menu.addAction(self.config["filter4"])
+        self.Filter5Action = self.filter_menu.addAction(self.config["filter5"])
         self.gpx_menu = self.menu.addMenu("GPX")
         self.ReadGPXAction = self.gpx_menu.addAction("Read GPX Track")
         self.SaveGPXAction = self.gpx_menu.addAction("Save GPX Track as")
@@ -466,16 +466,16 @@ class BildController(QMainWindow):
             self.amenities = []
         if quelle == self.ResetFilterAction:
             self.amenity_typ = None
-        if quelle == self.RestaurantAction:
-            self.amenity_typ = "restaurant"
-        if quelle == self.FuelAction:
-            self.amenity_typ = "fuel"
-        if quelle == self.PubAction:
-            self.amenity_typ = "pub"
-        if quelle == self.DoctorsAction:
-            self.amenity_typ = "doctors"
-        if quelle == self.DentistAction:
-            self.amenity_typ = "dentist"
+        if quelle == self.Filter1Action:
+            self.amenity_typ = self.config["filter1"]
+        if quelle == self.Filter2Action:
+            self.amenity_typ = self.config["filter2"]
+        if quelle == self.Filter3Action:
+            self.amenity_typ = self.config["filter3"]
+        if quelle == self.Filter4Action:
+            self.amenity_typ = self.config["filter4"]
+        if quelle == self.Filter5Action:
+            self.amenity_typ = self.config["filter5"]
         if quelle == self.PositionToGPXAction:
             # Positioniere die Karte so, das íhr Mittelpunkt mit dem Mittelpunkt des GPX Track übereinstimmt
             if len(self.gpxtrackpoint) > 0:
