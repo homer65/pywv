@@ -9,7 +9,7 @@ from xml.dom import minidom
 from urllib import request
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
-from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog
+from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton
 from PyQt5.QtCore import Qt
 
 def printNextAmenity(lat,lon,amenities,amenity_typ):
@@ -373,10 +373,9 @@ class BildController(QMainWindow):
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0) # Ecke eines Rechtecks
         self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegende Ecke des Rechtecks
-        self.setGeometry(100,100,765,765)
+        self.initUI()
+        self.setGeometry(100,100,800,765)
         self.setWindowTitle("OpenStreetMap / Thunderforest")
-        self.bild = BildPanel(x,y,zoom,config,self.gpxtrackpoint,self.amenities,self.amenity_typ) # Baue das Bild auf
-        self.setCentralWidget(self.bild)
         self.bild.addMouseListener(self)
         self.menu = QMenuBar()
         self.position_menu = self.menu.addMenu("Position")
@@ -413,7 +412,26 @@ class BildController(QMainWindow):
         self.deleteRectangleAction = self.gpx_menu.addAction("Set Delete Rectangle Modus from GPX")
         self.menu.triggered[QAction].connect(self.triggered)
         self.setMenuBar(self.menu)
-        
+    
+    def initUI(self):
+        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
+        self.bild.addMouseListener(self)
+        widget = QWidget()
+        vbox = QVBoxLayout()
+        hbox = QHBoxLayout()
+        self.butt1 = QPushButton("Zoom Up")
+        self.butt2 = QPushButton("Zoom Down")
+        self.butt1.clicked.connect(lambda:self.triggered(self.butt1))
+        self.butt2.clicked.connect(lambda:self.triggered(self.butt2))
+        hbox.addWidget(self.butt1)
+        hbox.addWidget(self.butt2)
+        hbox.addStretch(1)
+        vbox.addLayout(hbox)
+        vbox.addWidget(self.bild)
+        widget.setLayout(vbox)
+        self.setCentralWidget(widget)
+        self.update()            
+    
     def myprint(self):
         # Gebe PDF aus
         printer = QPrinter()
@@ -435,13 +453,13 @@ class BildController(QMainWindow):
             self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegender Eckpunkt des Rechtecks
         if quelle == self.PrintAction:
             self.myprint()
-        if quelle == self.ZoomUpAction:
+        if quelle == self.ZoomUpAction or quelle == self.butt1:
             # Zoom Stufe herabsetzen bis zur minimalen Zoom Stufe 2
             if self.zoom > 2:
                 self.zoom = self.zoom - 1
                 self.x = (self.x / 2) - 0.25
                 self.y = (self.y / 2) - 0.25
-        if quelle == self.ZoomDownAction:
+        if quelle == self.ZoomDownAction or quelle == self.butt2:
             # Zoom Stufe heraufsetzen bis zur maximalen Zoom Stufe 18
             if self.zoom < 18:
                 self.zoom = self.zoom + 1
@@ -517,10 +535,7 @@ class BildController(QMainWindow):
                 self.gpxtrackpoint.append(trackpoint)
         if quelle == self.SaveGPXAction:
             saveGPX(self.gpxtrackpoint)
-        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
-        self.bild.addMouseListener(self)
-        self.setCentralWidget(self.bild)
-        self.update()
+        self.initUI()
     
     def mousePressed(self,ev):
         if ev.button() == Qt.LeftButton:
