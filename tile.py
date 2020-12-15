@@ -373,10 +373,8 @@ class BildController(QMainWindow):
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0) # Ecke eines Rechtecks
         self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegende Ecke des Rechtecks
-        self.initUI()
         self.setGeometry(100,100,800,765)
         self.setWindowTitle("OpenStreetMap / Thunderforest")
-        self.bild.addMouseListener(self)
         self.menu = QMenuBar()
         self.position_menu = self.menu.addMenu("Position")
         self.ZoomUpAction = self.position_menu.addAction("Zoom Up")   
@@ -412,8 +410,11 @@ class BildController(QMainWindow):
         self.deleteRectangleAction = self.gpx_menu.addAction("Set Delete Rectangle Modus from GPX")
         self.menu.triggered[QAction].connect(self.triggered)
         self.setMenuBar(self.menu)
+        self.initUICount = 0
+        self.initUI()
     
     def initUI(self):
+        self.initUICount = self.initUICount + 1
         self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
         self.bild.addMouseListener(self)
         widget = QWidget()
@@ -430,7 +431,7 @@ class BildController(QMainWindow):
         vbox.addWidget(self.bild)
         widget.setLayout(vbox)
         self.setCentralWidget(widget)
-        self.update()            
+        if self.initUICount > 1: self.update()            
     
     def myprint(self):
         # Gebe PDF aus
@@ -555,8 +556,7 @@ class BildController(QMainWindow):
             if len(self.amenities) > 0:
                 downloadOSMData(self.x,self.y,self.zoom,self.config)
                 self.amenities = parseAmenity(self.config)
-            printNextAmenity(lat,lon,self.amenities,self.amenity_typ)
-            self.initUI()
+                printNextAmenity(lat,lon,self.amenities,self.amenity_typ)
         if ev.button() == Qt.RightButton:
             if self.gpxmodus == "addPoint":
                 # Füge den rechts angeklickten Punkt zum GPX Track hinzu
@@ -623,4 +623,4 @@ class BildController(QMainWindow):
                             newgpxtrackpoint.append(trackpoint)
                     self.gpxtrackpoint = newgpxtrackpoint
                     self.gpxmodus = "normal"
-                self.initUI()
+        self.initUI()
