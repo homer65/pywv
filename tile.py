@@ -13,9 +13,9 @@ from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSi
 from PyQt5.QtCore import Qt
 
 def printNextAmenity(lat,lon,amenities,amenity_typ):
-    """ Drucke die nächstgelegene Amenity an """
-    minAmenity = None
-    minAbstand = 1000000000.0
+    """ Drucke die nahegelegene Amenity an """
+    minAmenity = []
+    minAbstand = 0.0000001
     for amenity in amenities:
         typ = amenity["amenity"]
         alat = amenity["lat"]
@@ -28,12 +28,12 @@ def printNextAmenity(lat,lon,amenities,amenity_typ):
             ok = True
         if ok:
             if abstand < minAbstand:
-                minAbstand = abstand
-                minAmenity = amenity
-    if not (minAmenity == None):
-        keylist = list(minAmenity)
+                minAmenity.append(amenity)
+    for amenity in minAmenity:
+        keylist = list(amenity)
+        print("----------------------------------------------------------------------------")
         for key in keylist:
-            wert = minAmenity[key]
+            wert = amenity[key]
             print(key,wert)
 
 def readGPX():
