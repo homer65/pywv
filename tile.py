@@ -170,10 +170,10 @@ def downloadOSMData(x,y,zoom,config):
     latlon = calculateLatLon(x+0.5,y+0.5,zoom)
     lat = latlon[0]
     lon = latlon[1]
-    minlat = str(lat - 0.005)
-    minlon = str(lon - 0.005) 
-    maxlat = str(lat + 0.005)
-    maxlon = str(lon + 0.005)
+    minlat = str(lat - 0.003)
+    minlon = str(lon - 0.003) 
+    maxlat = str(lat + 0.003)
+    maxlon = str(lon + 0.003)
     sUrl = "https://api.openstreetmap.org/api/0.6/map?bbox="+minlon+","+minlat+","+maxlon+","+maxlat
     rc = request.urlopen(sUrl)
     inhalt = rc.read()
@@ -333,8 +333,8 @@ class BildPanel(QWidget):
                     ok = True
                 # Ist die Amenity nicht gefiltert und auf dem 3x3 Bild dann zeichne dort eine Flagge
                 if 0 < deltax < 765 and 0 < deltay < 765 and ok:                
-                    for i in range(0,16):
-                        for j in range(0,16):
+                    for i in range(0,12):
+                        for j in range(0,12):
                             color = flagge.pixel(i,j)
                             if not color == 0:
                                 posx = deltax + i 
