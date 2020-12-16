@@ -275,7 +275,10 @@ class BildPanel(QWidget):
                 for a in range(0,255):
                     for b in range(0,255):
                         color = tile.pixel(a,b)
-                        temporaer.setPixel(i*255+a,j*255+b,color)
+                        posx = i*255+a 
+                        posy = j*255+b 
+                        if 0 < posx < 1020 and 0 < posy < 1020:
+                            temporaer.setPixel(posx,posy,color)
         # Zeichne ein Gitternetz ins 4x4 Bild 
         for i in range(0,4):
             x = i * 255
@@ -312,7 +315,10 @@ class BildPanel(QWidget):
                     color = qRgba(255,0,0,0)
                     for i in range(0,3):
                         for j in range(0,3):
-                            self.cluster.setPixel(math.trunc(deltax)-1+i,math.trunc(deltay)-1+j,color)
+                            posx = math.trunc(deltax) - 1 + i 
+                            posy = math.trunc(deltay) - 1 + j 
+                            if 0 < posx < 765 and 0 < posy < 765:
+                                self.cluster.setPixel(posx,posy,color)
         # Wenn Amenities vorhanden sind, zeichne entsprechende Flaggen
         if len(self.amenities) > 0:
             for amenity in self.amenities:
