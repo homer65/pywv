@@ -455,6 +455,9 @@ class BildController(QMainWindow):
                     amenityPanel = AmenityPanel(amenity)
                     tab.addTab(amenityPanel,"Amenity")
             cbox.addWidget(tab)
+            self.setGeometry(100,100,800,1065)
+        else:
+            self.setGeometry(100,100,800,765)
         widget.setLayout(cbox)
         self.setCentralWidget(widget)
         if self.initUICount > 1: self.update()            
