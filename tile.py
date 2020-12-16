@@ -9,11 +9,11 @@ from xml.dom import minidom
 from urllib import request
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
-from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton
+from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton,QLabel
 from PyQt5.QtCore import Qt
 
 def printNextAmenity(lat,lon,amenities,amenity_typ):
-    """ Drucke die nahegelegene Amenity an """
+    """ Drucke die nahegelegenen Amenity an """
     minAmenity = []
     minAbstand = 0.0000001
     for amenity in amenities:
@@ -418,11 +418,19 @@ class BildController(QMainWindow):
         hbox = QHBoxLayout()
         self.butt1 = QPushButton("Zoom Up")
         self.butt2 = QPushButton("Zoom Down")
+        (lat, lon) = calculateLatLon(self.x+0.5, self.y+0.5, self.zoom)
+        flat = math.trunc(100000.0 * lat) / 100000.0
+        flon = math.trunc(100000.0 * lon) / 100000.0
+        fx = math.trunc(1000.0 * (self.x + 0.5)) / 1000.0
+        fy = math.trunc(1000.0 * (self.y + 0.5)) / 1000.0
+        info = str(flat) + " : " + str(flon) + " # " + str(fx) + " : " + str(fy)  + " :: " + str(self.zoom)
+        self.lab1 = QLabel(info);
         self.butt1.clicked.connect(lambda:self.triggered(self.butt1))
         self.butt2.clicked.connect(lambda:self.triggered(self.butt2))
         hbox.addWidget(self.butt1)
         hbox.addWidget(self.butt2)
         hbox.addStretch(1)
+        hbox.addWidget(self.lab1)
         vbox.addLayout(hbox)
         vbox.addWidget(self.bild)
         widget.setLayout(vbox)
