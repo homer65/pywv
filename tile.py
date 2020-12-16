@@ -14,6 +14,7 @@ from PyQt5.QtCore import Qt
 
 def printNextAmenity(lat,lon,amenities,amenity_typ):
     """ Drucke die nahegelegenen Amenity an """
+    print("---------------------------------------------------------------------------- Start Amenities")
     minAmenity = []
     minAbstand = 0.00000002
     for amenity in amenities:
@@ -35,6 +36,7 @@ def printNextAmenity(lat,lon,amenities,amenity_typ):
         for key in keylist:
             wert = amenity[key]
             print(key,wert)
+    print("---------------------------------------------------------------------------- End Amenities")
 
 def readGPX():
     """ Lese GPX Track aus Datei und gebe die enthaltenen Trackpoints zurück """
