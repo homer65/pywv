@@ -451,13 +451,13 @@ class BildController(QMainWindow):
             anzahl = 0
             for amenity in self.minAmenity:
                 anzahl = anzahl + 1
-                if anzahl < 7:
+                if anzahl < 10:
                     amenityPanel = AmenityPanel(amenity)
                     tab.addTab(amenityPanel,"Amenity")
             cbox.addWidget(tab)
-            self.setGeometry(100,100,800,1065)
+            self.setGeometry(50,50,800,765)
         else:
-            self.setGeometry(100,100,800,765)
+            self.setGeometry(50,50,800,765)
         widget.setLayout(cbox)
         self.setCentralWidget(widget)
         if self.initUICount > 1: self.update()            
