@@ -515,6 +515,7 @@ class BildController(QMainWindow):
             self.amenities = parseAmenity(self.config)
         if quelle == self.HideAmenitiesAction:
             self.amenities = []
+            self.minAmenity = []
         if quelle == self.ResetFilterAction:
             self.amenity_typ = None
         if quelle == self.Filter1Action:
