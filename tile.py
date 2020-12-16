@@ -547,7 +547,6 @@ class BildController(QMainWindow):
             delta = 383 + int(self.config["adjustment"])
             deltax = (float(b-delta) / 255.0) 
             deltay = (float(a-delta) / 255.0)
-            print(">>>",a,b)
             self.x = float(self.x) + deltax
             self.y = float(self.y) + deltay
             print(self.x+0.5,self.y+0.5,self.zoom)
