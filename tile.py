@@ -201,9 +201,7 @@ def get_tile(x, y, zoom, config):
 
 def calculateXY(lat,lon,zoom):
     """ Berechne X und Y Koordinate aus Latitude und Longitude bei vorgegebener Zoom Stufe Z """
-    fz = 1.0;
-    for i in range(0,zoom):
-        fz = 2.0 * fz;
+    fz = 2.0 ** zoom
     ytile = (lon + 180) / 360 * fz 
     xtile = (1 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2 * fz
     return (xtile,ytile)
@@ -213,9 +211,7 @@ def calculateLatLon(y,x,zoom):
     x = float(x)
     y = float(y)
     pi = math.pi
-    fz = 1.0
-    for i in range(0,zoom):
-        fz = fz * 2.0
+    fz = 2.0 ** zoom
     lon = ((360.0 * float(x))/float(fz)) - 180.0
     lat = pi - 2.0 * pi * (float(y)/float(fz))
     lat = math.sinh(lat)
@@ -552,6 +548,7 @@ class BildController(QMainWindow):
             print(self.x+0.5,self.y+0.5,self.zoom)
             (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.zoom)
             print(lat,lon)
+            # Wenn Amenity vorhanden, dann lade um den neuen Kartenmittelpunkt nach und drcuke die naechstgelegenen
             if len(self.amenities) > 0:
                 downloadOSMData(self.x,self.y,self.zoom,self.config)
                 self.amenities = parseAmenity(self.config)
