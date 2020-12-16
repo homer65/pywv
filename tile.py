@@ -12,16 +12,16 @@ from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton,QLabel
 from PyQt5.QtCore import Qt
 
-def printNextAmenity(lat,lon,amenities,amenity_typ):
+def printNextAmenity(lat,lon,zoom,amenities,amenity_typ):
     """ Drucke die nahegelegenen Amenity an """
     print("---------------------------------------------------------------------------- Start Amenities")
     minAmenity = []
-    minAbstand = 0.00000002
+    minAbstand = 0.0001 * (2 ** (18 - zoom))
     for amenity in amenities:
         typ = amenity["amenity"]
         alat = amenity["lat"]
         alon = amenity["lon"]
-        abstand = (alat-lat)*(alat-lat) + (alon-lon)*(alon-lon)
+        abstand = math.sqrt((alat-lat)*(alat-lat) + (alon-lon)*(alon-lon))
         ok = False
         if amenity_typ == None:
             ok = True
@@ -568,7 +568,7 @@ class BildController(QMainWindow):
             if len(self.amenities) > 0:
                 downloadOSMData(self.x,self.y,self.zoom,self.config)
                 self.amenities = parseAmenity(self.config)
-                printNextAmenity(lat,lon,self.amenities,self.amenity_typ)
+                printNextAmenity(lat,lon,self.zoom,self.amenities,self.amenity_typ)
         if ev.button() == Qt.RightButton:
             if self.gpxmodus == "addPoint":
                 # Füge den rechts angeklickten Punkt zum GPX Track hinzu
