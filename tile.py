@@ -15,7 +15,7 @@ from PyQt5.QtCore import Qt
 def printNextAmenity(lat,lon,amenities,amenity_typ):
     """ Drucke die nahegelegenen Amenity an """
     minAmenity = []
-    minAbstand = 0.0000001
+    minAbstand = 0.000005
     for amenity in amenities:
         typ = amenity["amenity"]
         alat = amenity["lat"]
