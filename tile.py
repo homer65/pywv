@@ -9,7 +9,8 @@ from xml.dom import minidom
 from urllib import request
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
-from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton,QLabel
+from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFormLayout
+from PyQt5.QtWidgets import QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton,QLabel,QTabWidget
 from PyQt5.QtCore import Qt
 
 def printNextAmenity(lat,lon,zoom,amenities,amenity_typ):
@@ -37,6 +38,7 @@ def printNextAmenity(lat,lon,zoom,amenities,amenity_typ):
             wert = amenity[key]
             print(key,wert)
     print("---------------------------------------------------------------------------- End Amenities")
+    return minAmenity
 
 def readGPX():
     """ Lese GPX Track aus Datei und gebe die enthaltenen Trackpoints zurück """
@@ -372,6 +374,7 @@ class BildController(QMainWindow):
         self.zoom = zoom # Zoom stufe
         self.config = config # Konfiguration aus der ini Datei
         self.gpxtrackpoint = [] # Alle Track Points eines GPX Tracks
+        self.minAmenity = [] # Amenity nahe Kartenmittelpunkt
         self.amenities = [] # In OpenStreetMap eingetragene Amenities (Einrichtungen)
         self.amenity_typ = None # Filter welche Amenity angezeigt werden
         self.gpxmodus = "normal"
@@ -424,6 +427,7 @@ class BildController(QMainWindow):
         widget = QWidget()
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
+        cbox = QHBoxLayout()
         self.butt1 = QPushButton("Zoom Up")
         self.butt2 = QPushButton("Zoom Down")
         (lat, lon) = calculateLatLon(self.x+0.5, self.y+0.5, self.zoom)
@@ -441,7 +445,17 @@ class BildController(QMainWindow):
         hbox.addWidget(self.lab1)
         vbox.addLayout(hbox)
         vbox.addWidget(self.bild)
-        widget.setLayout(vbox)
+        cbox.addLayout(vbox)
+        if len(self.minAmenity) > 0:
+            tab = QTabWidget()
+            anzahl = 0
+            for amenity in self.minAmenity:
+                anzahl = anzahl + 1
+                if anzahl < 7:
+                    amenityPanel = AmenityPanel(amenity)
+                    tab.addTab(amenityPanel,"Amenity")
+            cbox.addWidget(tab)
+        widget.setLayout(cbox)
         self.setCentralWidget(widget)
         if self.initUICount > 1: self.update()            
     
@@ -565,10 +579,11 @@ class BildController(QMainWindow):
             (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.zoom)
             print(lat,lon)
             # Wenn Amenity vorhanden, dann lade um den neuen Kartenmittelpunkt nach und drcuke die naechstgelegenen
+            self.minAmenity = []
             if len(self.amenities) > 0:
                 downloadOSMData(self.x,self.y,self.zoom,self.config)
                 self.amenities = parseAmenity(self.config)
-                printNextAmenity(lat,lon,self.zoom,self.amenities,self.amenity_typ)
+                self.minAmenity = printNextAmenity(lat,lon,self.zoom,self.amenities,self.amenity_typ)
         if ev.button() == Qt.RightButton:
             if self.gpxmodus == "addPoint":
                 # Füge den rechts angeklickten Punkt zum GPX Track hinzu
@@ -636,3 +651,19 @@ class BildController(QMainWindow):
                     self.gpxtrackpoint = newgpxtrackpoint
                     self.gpxmodus = "normal"
         self.initUI()
+
+
+class AmenityPanel(QWidget):
+    """ Anzeige einer Amenity """
+    
+    def __init__(self,amenity):
+        QWidget.__init__(self)
+        self.amenity = amenity
+        layout = QFormLayout()
+        keylist = list(amenity)
+        for key in keylist:
+            wert = amenity[key]
+            label1 = QLabel(key)
+            label2 = QLabel(str(wert))
+            layout.addRow(label1,label2)
+        self.setLayout(layout)
