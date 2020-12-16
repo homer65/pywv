@@ -186,7 +186,7 @@ def downloadTile(x,y,zoom,config):
     if config["tileserver"] == "openstreetmap":
         sUrl = "https://a.tile.openstreetmap.de/"+zoom+"/"+y+"/"+x+".png"
     rc = request.urlopen(sUrl)
-    print(rc.code)
+    if not rc.code == 200: print("downloadTile: Http Response Code: ", rc.code)
     inhalt = rc.read()
     tileFileName = os.path.join(config["tileCache"],"tile."+x+"."+y+"."+zoom+".png")
     with open(tileFileName,"wb") as f:
