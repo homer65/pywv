@@ -569,7 +569,7 @@ class BildController(QMainWindow):
         flon = math.trunc(100000.0 * lon) / 100000.0
         fx = math.trunc(1000.0 * (self.x + 0.5)) / 1000.0
         fy = math.trunc(1000.0 * (self.y + 0.5)) / 1000.0
-        info = str(flat) + " : " + str(flon) + " # " + str(fx) + " : " + str(fy)  + " :: " + str(self.zoom)
+        info = str(self.amenity_typ) + " / " + str(self.node_typ) + " / " + str(flat) + " : " + str(flon) + " # " + str(fx) + " : " + str(fy)  + " :: " + str(self.zoom)
         self.lab1 = QLabel(info);
         self.butt1.clicked.connect(lambda:self.triggered(self.butt1))
         self.butt2.clicked.connect(lambda:self.triggered(self.butt2))
