@@ -495,6 +495,7 @@ class BildController(QMainWindow):
         self.Filter8Action = self.filter_menu.addAction(self.config["filter8"])
         self.Filter9Action = self.filter_menu.addAction(self.config["filter9"])
         self.Filter10Action = self.filter_menu.addAction(self.config["filter10"])
+        self.FreitextFilterAction = self.filter_menu.addAction("Freitext Filter")
         self.node_filter_menu = self.menu.addMenu("Node Filter")
         self.NodeFilerResetAction = self.node_filter_menu.addAction("Reset Node Filter")
         self.NodeFilterAction = self.node_filter_menu.addAction("Setze Node Filter")
@@ -654,13 +655,16 @@ class BildController(QMainWindow):
             self.amenity_typ = self.config["filter9"]
         if quelle == self.Filter10Action:
             self.amenity_typ = self.config["filter10"]  
+        if quelle == self.FreitextFilterAction:
+            self.nfd = NodeFilterDialog(self.amenity_typ)   
+            self.nfd.exec_()
+            self.amenity_typ = self.nfd.getText() 
         if quelle == self.NodeFilerResetAction:
             self.node_typ = None
         if quelle == self.NodeFilterAction:
             self.nfd = NodeFilterDialog(self.node_typ)   
             self.nfd.exec_()
-            self.node_typ = self.nfd.getText()
-            print(">Node Filter< ",self.node_typ)    
+            self.node_typ = self.nfd.getText() 
         if quelle == self.PositionToGPXAction:
             # Positioniere die Karte so, das íhr Mittelpunkt mit dem Mittelpunkt des GPX Track übereinstimmt
             if len(self.gpxtrackpoint) > 0:
