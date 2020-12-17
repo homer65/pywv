@@ -10,7 +10,7 @@ from urllib import request
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFormLayout
-from PyQt5.QtWidgets import QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton,QLabel,QTabWidget
+from PyQt5.QtWidgets import QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton,QLabel,QTabWidget,QDialog,QLineEdit
 from PyQt5.QtCore import Qt
 
 def printNextAmenity(lat,lon,zoom,amenities,amenity_typ):
@@ -39,6 +39,34 @@ def printNextAmenity(lat,lon,zoom,amenities,amenity_typ):
             print(key,wert)
     print("---------------------------------------------------------------------------- End Amenities")
     return minAmenity
+
+def printNextNode(lat,lon,zoom,nodes,node_typ):
+    """ Drucke die nahegelegenen Node an """
+    print("---------------------------------------------------------------------------- Start Nodes")
+    minNode = []
+    minAbstand = 0.0001 * (2 ** (18 - zoom))
+    for node in nodes:
+        alat = node["lat"]
+        alon = node["lon"]
+        abstand = math.sqrt((alat-lat)*(alat-lat) + (alon-lon)*(alon-lon))
+        if abstand < minAbstand:
+            ok = False
+            if node_typ == None: ok = True
+            else:
+                keylist = list(node)
+                for key in keylist:
+                    wert = node[key]
+                    if node_typ in str(wert): ok = True
+            if ok:
+                minNode.append(node)
+    for node in minNode:
+        keylist = list(node)
+        print("----------------------------------------------------------------------------")
+        for key in keylist:
+            wert = node[key]
+            print(key,wert)
+    print("---------------------------------------------------------------------------- End Nodes")
+    return minNode
 
 def readGPX():
     """ Lese GPX Track aus Datei und gebe die enthaltenen Trackpoints zurück """
@@ -125,6 +153,29 @@ def parseAmenity(config):
             if k == "amenity": isAmenity = True
         if isAmenity: amenities.append(amenity)
     return amenities
+
+def parseNode(config):
+    """
+    Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen und getaggte Nodes
+    """
+    nodes = []
+    xmldoc = minidom.parse(config["osmxml"])
+    itemlist = xmldoc.getElementsByTagName('node')
+    for item in itemlist:
+        node = {}
+        lat = item.attributes['lat'].value
+        lon = item.attributes['lon'].value
+        node["lat"] = float(lat)
+        node["lon"] = float(lon)
+        tags = item.getElementsByTagName('tag')
+        isGetaggt = False
+        for tag in tags:
+            k = tag.attributes['k'].value
+            v = tag.attributes['v'].value
+            node[k] = v
+            isGetaggt = True
+        if isGetaggt: nodes.append(node)
+    return nodes
                     
 def parseOSMXml(config):
     """
@@ -246,14 +297,17 @@ class TilePanel(QWidget):
 class BildPanel(QWidget):
     """ Baut das anzuzeigende Bild auf """
     
-    def __init__(self,x,y,zoom,config,gpxtrackpoint,amenities,amenity_typ):
+    def __init__(self,x,y,zoom,config,gpxtrackpoint,amenities,amenity_typ,nodes,node_typ):
         self.x = x # X Koordinate
         self.y = y # Y Koordinate
         self.zoom = zoom # Zoom stufe
         self.gpxtrackpoint = gpxtrackpoint
         self.amenities = amenities
         self.amenity_typ = amenity_typ
+        self.nodes = nodes
+        self.node_typ = node_typ
         flagge = QImage("flagge.png") # Bild um Amenity anzuzeigen
+        node_flagge = QImage("node.png") # Bild um Node anzuzeigen
         # Teile Koordinaten in Ganzahl Anteil und Nachkomma Stellen
         # Da Kacheln von Thunderforest immer bei ganzzahligen Koordinaten beginnen
         x = math.trunc(x) 
@@ -346,7 +400,35 @@ class BildPanel(QWidget):
                                 posx = deltax + i 
                                 posy = deltay + j
                                 if 0 < posx < 765 and 0 < posy < 765:  
-                                    self.cluster.setPixel(posx,posy,color)                            
+                                    self.cluster.setPixel(posx,posy,color)
+                                    
+        # Wenn Nodes vorhanden sind, zeichne entsprechende Flaggen
+        if len(self.nodes) > 0:
+            for node in self.nodes:
+                lat = node["lat"]
+                lon = node["lon"]
+                (node_x,node_y) = calculateXY(lat,lon,zoom)
+                deltay = (node_x - self.x + 1.0) * 255.0
+                deltax = (node_y - self.y + 1.0) * 255.0
+                ok = False
+                if self.node_typ == None:
+                    ok = True
+                else:
+                    keylist = list(node)
+                    for key in keylist:
+                        wert = node[key]
+                        if self.node_typ in str(wert): ok = True
+                # Ist der Node nicht gefiltert und auf dem 3x3 Bild dann zeichne dort eine entsprechende Flagge
+                if 0 < deltax < 765 and 0 < deltay < 765 and ok:                
+                    for i in range(0,12):
+                        for j in range(0,12):
+                            color = node_flagge.pixel(i,j)
+                            if not color == 0:
+                                posx = deltax + i 
+                                posy = deltay + j
+                                if 0 < posx < 765 and 0 < posy < 765:  
+                                    self.cluster.setPixel(posx,posy,color)   
+                                                             
         # Zeige das Bild
         pan = TilePanel(self.cluster)
         grid=QGridLayout()
@@ -376,7 +458,10 @@ class BildController(QMainWindow):
         self.gpxtrackpoint = [] # Alle Track Points eines GPX Tracks
         self.minAmenity = [] # Amenity nahe Kartenmittelpunkt
         self.amenities = [] # In OpenStreetMap eingetragene Amenities (Einrichtungen)
-        self.amenity_typ = None # Filter welche Amenity angezeigt werden
+        self.amenity_typ = None # Filter welche Amenity angezeigt werden       
+        self.minNode = [] # Node nahe Kartenmittelpunkt
+        self.nodes = [] # In OpenStreetMap eingetragene Nodes, die getagged sind
+        self.node_typ = None # Filter welche Node angezeigt werden        
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0) # Ecke eines Rechtecks
         self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegende Ecke des Rechtecks
@@ -396,7 +481,9 @@ class BildController(QMainWindow):
         self.ShowWebsitesAction = self.file_menu.addAction("Show Websites")
         self.ShowAmenitiesAction = self.file_menu.addAction("Show Amenities")
         self.HideAmenitiesAction = self.file_menu.addAction("Hide Amenities")
-        self.filter_menu = self.menu.addMenu("Filter")
+        self.ShowNodesAction = self.file_menu.addAction("Show Nodes")
+        self.HideNodesAction = self.file_menu.addAction("Hide Nodes")
+        self.filter_menu = self.menu.addMenu("Amenity Filter")
         self.ResetFilterAction = self.filter_menu.addAction("Reset Filter")
         self.Filter1Action = self.filter_menu.addAction(self.config["filter1"])
         self.Filter2Action = self.filter_menu.addAction(self.config["filter2"])
@@ -408,6 +495,9 @@ class BildController(QMainWindow):
         self.Filter8Action = self.filter_menu.addAction(self.config["filter8"])
         self.Filter9Action = self.filter_menu.addAction(self.config["filter9"])
         self.Filter10Action = self.filter_menu.addAction(self.config["filter10"])
+        self.node_filter_menu = self.menu.addMenu("Node Filter")
+        self.NodeFilerResetAction = self.node_filter_menu.addAction("Reset Node Filter")
+        self.NodeFilterAction = self.node_filter_menu.addAction("Setze Node Filter")
         self.gpx_menu = self.menu.addMenu("GPX")
         self.ReadGPXAction = self.gpx_menu.addAction("Read GPX Track")
         self.SaveGPXAction = self.gpx_menu.addAction("Save GPX Track as")
@@ -422,7 +512,7 @@ class BildController(QMainWindow):
     
     def initUI(self):
         self.initUICount = self.initUICount + 1
-        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ)
+        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ,self.nodes,self.node_typ)
         self.bild.addMouseListener(self)
         widget = QWidget()
         vbox = QVBoxLayout()
@@ -458,6 +548,19 @@ class BildController(QMainWindow):
             self.setGeometry(50,50,1165,785)
         else:
             self.setGeometry(50,50,765,785)
+        if len(self.minNode) > 0:
+            tab = QTabWidget()
+            anzahl = 0
+            for node in self.minNode:
+                anzahl = anzahl + 1
+                if anzahl < 10:
+                    amenityPanel = AmenityPanel(node) # Eine Amenity ist ein spezieller Node
+                    tab.addTab(amenityPanel,"Node")
+            cbox.addWidget(tab)
+            self.setGeometry(50,50,1165,785)
+        else:
+            self.setGeometry(50,50,765,785)
+
         widget.setLayout(cbox)
         self.setCentralWidget(widget)
         if self.initUICount > 1: self.update()            
@@ -514,11 +617,21 @@ class BildController(QMainWindow):
             downloadOSMData(self.x,self.y,self.zoom,self.config)
             parseOSMXml(self.config)
         if quelle == self.ShowAmenitiesAction:
+            self.nodes = []
+            self.minNode = []
             downloadOSMData(self.x,self.y,self.zoom,self.config)
             self.amenities = parseAmenity(self.config)
         if quelle == self.HideAmenitiesAction:
             self.amenities = []
             self.minAmenity = []
+        if quelle == self.ShowNodesAction:
+            self.amenities = []
+            self.minAmenity = []
+            downloadOSMData(self.x,self.y,self.zoom,self.config)
+            self.nodes = parseNode(self.config)
+        if quelle == self.HideNodesAction:
+            self.nodes = []
+            self.minNodes = []
         if quelle == self.ResetFilterAction:
             self.amenity_typ = None
         if quelle == self.Filter1Action:
@@ -540,7 +653,14 @@ class BildController(QMainWindow):
         if quelle == self.Filter9Action:
             self.amenity_typ = self.config["filter9"]
         if quelle == self.Filter10Action:
-            self.amenity_typ = self.config["filter10"]            
+            self.amenity_typ = self.config["filter10"]  
+        if quelle == self.NodeFilerResetAction:
+            self.node_typ = None
+        if quelle == self.NodeFilterAction:
+            self.nfd = NodeFilterDialog(self.node_typ)   
+            self.nfd.exec_()
+            self.node_typ = self.nfd.getText()
+            print(">Node Filter< ",self.node_typ)    
         if quelle == self.PositionToGPXAction:
             # Positioniere die Karte so, das íhr Mittelpunkt mit dem Mittelpunkt des GPX Track übereinstimmt
             if len(self.gpxtrackpoint) > 0:
@@ -588,6 +708,12 @@ class BildController(QMainWindow):
                 downloadOSMData(self.x,self.y,self.zoom,self.config)
                 self.amenities = parseAmenity(self.config)
                 self.minAmenity = printNextAmenity(lat,lon,self.zoom,self.amenities,self.amenity_typ)
+            # Wenn Node vorhanden, dann lade um den neuen Kartenmittelpunkt nach und drcuke die naechstgelegenen
+            self.minNode = []
+            if len(self.nodes) > 0:
+                downloadOSMData(self.x,self.y,self.zoom,self.config)
+                self.nodes = parseNode(self.config)
+                self.minNode = printNextNode(lat,lon,self.zoom,self.nodes,self.node_typ)
         if ev.button() == Qt.RightButton:
             if self.gpxmodus == "addPoint":
                 # Füge den rechts angeklickten Punkt zum GPX Track hinzu
@@ -673,3 +799,31 @@ class AmenityPanel(QWidget):
         self.setLayout(layout)
         self.setMinimumSize(400,785)
         self.setSizePolicy(QSizePolicy.Fixed,QSizePolicy.Fixed)
+        
+
+class NodeFilterDialog(QDialog):
+    """ Eingabe Dialog fuer Node Filter """
+    def __init__(self,node_typ):
+        QDialog.__init__(self)
+        self.node_typ = node_typ
+        form = QFormLayout()
+        lab1 = QLabel(self)
+        lab1.setText("Filter ")
+        self.tf1 = QLineEdit()
+        form.addRow(lab1,self.tf1)
+        butt1 = QPushButton(self)
+        butt1.setText("ok")
+        butt2 = QPushButton(self)
+        butt2.setText("cancel")
+        form.addRow(butt1,butt2)
+        self.setLayout(form)
+        butt1.clicked.connect(lambda:self.butt1_clicked())
+        butt2.clicked.connect(lambda:self.butt2_clicked())
+    def butt1_clicked(self):
+        self.node_typ = self.tf1.text()
+        self.close()
+    def butt2_clicked(self):
+        self.node_typ = None
+        self.close()
+    def getText(self):
+        return self.node_typ
