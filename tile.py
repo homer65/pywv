@@ -872,13 +872,16 @@ class AuswahlFilterDialog(QDialog):
     
     def __init__(self,config):
         QDialog.__init__(self)
-        self.amenity_typen = kategorisiereAmenity(config)
+        amenity_typen = kategorisiereAmenity(config)
         form = QFormLayout()
-        keylist = list(self.amenity_typen)
-        for self.key in keylist:
-            anzahl = self.amenity_typen[self.key]
+        keylist = list(amenity_typen)
+        typen_liste = []
+        for key in keylist:
+            typen_liste.append((key,amenity_typen[key]))
+        typen_liste.sort()
+        for (key,anzahl) in typen_liste:
             label1 = QLabel(self)
-            label1.setText(str(self.key))
+            label1.setText(str(key))
             label2 = QLabel(self)
             label2.setText(str(anzahl))
             form.addRow(label1,label2)
