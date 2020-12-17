@@ -9,7 +9,7 @@ from xml.dom import minidom
 from urllib import request
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
-from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFormLayout
+from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFormLayout,QGridLayout
 from PyQt5.QtWidgets import QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton,QLabel,QTabWidget,QDialog,QLineEdit
 from PyQt5.QtCore import Qt
 
@@ -132,6 +132,7 @@ def saveGPX(gpxtrackpoint):
         except:
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
+            
 def parseAmenity(config):
     """
     Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen amenity
@@ -154,6 +155,27 @@ def parseAmenity(config):
             if k == "amenity": isAmenity = True
         if isAmenity: amenities.append(amenity)
     return amenities
+
+def kategorisiereAmenity(config):
+    """
+    Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen amenity
+    Fuer jeden Amenity Typ wird die Anzahl zurueckgegeben
+    """
+    amenity_typen = {}
+    xmldoc = minidom.parse(config["osmxml"])
+    itemlist = xmldoc.getElementsByTagName('node')
+    for item in itemlist:
+        tags = item.getElementsByTagName('tag')
+        for tag in tags:
+            k = tag.attributes['k'].value
+            v = tag.attributes['v'].value
+            if k == "amenity": 
+                if v in amenity_typen:
+                    anzahl = amenity_typen[v] + 1
+                    amenity_typen[v] = anzahl
+                else:
+                    amenity_typen[v] = 1
+    return amenity_typen
 
 def parseNode(config):
     """
@@ -498,6 +520,7 @@ class BildController(QMainWindow):
         self.Filter9Action = self.filter_menu.addAction(self.config["filter9"])
         self.Filter10Action = self.filter_menu.addAction(self.config["filter10"])
         self.FreitextFilterAction = self.filter_menu.addAction("Freitext Filter")
+        self.AuswahlFilterAction = self.filter_menu.addAction("Auswahl Filter")
         self.node_filter_menu = self.menu.addMenu("Node Filter")
         self.NodeFilerResetAction = self.node_filter_menu.addAction("Reset Node Filter")
         self.NodeFilterAction = self.node_filter_menu.addAction("Setze Node Filter")
@@ -661,6 +684,10 @@ class BildController(QMainWindow):
             self.nfd = NodeFilterDialog(self.amenity_typ)   
             self.nfd.exec_()
             self.amenity_typ = self.nfd.getText() 
+        if quelle == self.AuswahlFilterAction:
+            self.afd = AuswahlFilterDialog(self.config)   
+            self.afd.exec_()
+            self.amenity_typ = self.afd.getText() 
         if quelle == self.NodeFilerResetAction:
             self.node_typ = None
         if quelle == self.NodeFilterAction:
@@ -809,6 +836,7 @@ class AmenityPanel(QWidget):
 
 class NodeFilterDialog(QDialog):
     """ Eingabe Dialog fuer Node Filter """
+    
     def __init__(self,node_typ):
         QDialog.__init__(self)
         self.node_typ = node_typ
@@ -816,6 +844,7 @@ class NodeFilterDialog(QDialog):
         lab1 = QLabel(self)
         lab1.setText("Filter ")
         self.tf1 = QLineEdit()
+        self.tf1.setText(node_typ)
         form.addRow(lab1,self.tf1)
         butt1 = QPushButton(self)
         butt1.setText("ok")
@@ -825,11 +854,55 @@ class NodeFilterDialog(QDialog):
         self.setLayout(form)
         butt1.clicked.connect(lambda:self.butt1_clicked())
         butt2.clicked.connect(lambda:self.butt2_clicked())
+        
     def butt1_clicked(self):
         self.node_typ = self.tf1.text()
         self.close()
+        
     def butt2_clicked(self):
         self.node_typ = None
         self.close()
+        
     def getText(self):
         return self.node_typ
+    
+
+class AuswahlFilterDialog(QDialog):
+    """ Auswahl Dialog fuer Amenity Filter """
+    
+    def __init__(self,config):
+        QDialog.__init__(self)
+        self.amenity_typen = kategorisiereAmenity(config)
+        form = QFormLayout()
+        keylist = list(self.amenity_typen)
+        for self.key in keylist:
+            anzahl = self.amenity_typen[self.key]
+            label1 = QLabel(self)
+            label1.setText(str(self.key))
+            label2 = QLabel(self)
+            label2.setText(str(anzahl))
+            form.addRow(label1,label2)
+        label = QLabel(self)
+        label.setText("Auswahl: ")
+        self.line_edit = QLineEdit()
+        form.addRow(label,self.line_edit)
+        butt1 = QPushButton(self)
+        butt1.setText("ok")
+        butt2 = QPushButton(self)
+        butt2.setText("cancel")
+        form.addRow(butt1,butt2)
+        self.setLayout(form)
+        butt1.clicked.connect(lambda:self.butt1_clicked())
+        butt2.clicked.connect(lambda:self.butt2_clicked())
+             
+    def butt1_clicked(self):
+        self.amenity_typ = self.line_edit.text()
+        print(self.amenity_typ)
+        self.close()
+        
+    def butt2_clicked(self):
+        self.amenity_typ = None
+        self.close()
+        
+    def getText(self):
+        return self.amenity_typ
