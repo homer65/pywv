@@ -861,35 +861,57 @@ class NodeFilterDialog(QDialog):
     def getText(self):
         return self.node_typ
     
-
+    
 class AuswahlFilterDialog(QDialog):
-    """ Auswahl Dialog fuer Amenity Filter """
+    """ Auswahl Dialog fuer Amenity Filter - grid Layout"""
     
     def __init__(self,config):
         QDialog.__init__(self)
         amenity_typen = kategorisiereAmenity(config)
-        form = QFormLayout()
+        grid = QGridLayout()
         keylist = list(amenity_typen)
         typen_liste = []
         for key in keylist:
             typen_liste.append((key,amenity_typen[key]))
         typen_liste.sort()
+        i = 0
+        j = 0
         for (key,anzahl) in typen_liste:
             label1 = QLabel(self)
             label1.setText(str(key))
             label2 = QLabel(self)
             label2.setText(str(anzahl))
-            form.addRow(label1,label2)
+            grid.addWidget(label1,i,j)
+            j = j + 1
+            grid.addWidget(label2,i,j) 
+            j = j + 1
+            if j > 3:
+                j = 0
+                i = i + 1
+        j = 0
+        i = i + 1
         label = QLabel(self)
         label.setText("Auswahl: ")
         self.line_edit = QLineEdit()
-        form.addRow(label,self.line_edit)
+        grid.addWidget(label,i,j)
+        j = j + 1
+        grid.addWidget(self.line_edit,i,j)
+        j = j + 1
+        if j > 3:
+            j = 0
+            i = i + 1
         butt1 = QPushButton(self)
         butt1.setText("ok")
         butt2 = QPushButton(self)
         butt2.setText("cancel")
-        form.addRow(butt1,butt2)
-        self.setLayout(form)
+        grid.addWidget(butt1,i,j)
+        j = j + 1
+        grid.addWidget(butt2,i,j)
+        j = j + 1
+        if j > 3:
+            j = 0
+            i = i + 1
+        self.setLayout(grid)
         butt1.clicked.connect(lambda:self.butt1_clicked())
         butt2.clicked.connect(lambda:self.butt2_clicked())
              
