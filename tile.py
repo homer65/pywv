@@ -12,7 +12,6 @@ from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QMenuBar,QAction,QMainWindow,QSizePolicy,QFormLayout,QGridLayout
 from PyQt5.QtWidgets import QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton,QLabel,QTabWidget,QDialog,QLineEdit,QScrollArea
 from PyQt5.QtCore import Qt
-from matplotlib.pyplot import grid
 
 def printNextAmenity(lat,lon,zoom,amenities,amenity_typ):
     """ Drucke die nahegelegenen Amenity an """
