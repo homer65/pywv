@@ -587,7 +587,7 @@ class BildController(QMainWindow):
                 anzahl = anzahl + 1
                 if anzahl < 10:
                     amenityPanel = AmenityPanel(amenity)
-                    tab.addTab(amenityPanel,"Amenity")
+                    tab.addTab(amenityPanel,"Amenity" + str(anzahl))
             cbox.addWidget(tab)
             self.setGeometry(50,50,1165,785)
         else:
@@ -599,7 +599,7 @@ class BildController(QMainWindow):
                 anzahl = anzahl + 1
                 if anzahl < 10:
                     amenityPanel = AmenityPanel(node) # Eine Amenity ist ein spezieller Node
-                    tab.addTab(amenityPanel,"Node")
+                    tab.addTab(amenityPanel,"Node" + str(anzahl))
             cbox.addWidget(tab)
             self.setGeometry(50,50,1165,785)
         else:
@@ -938,7 +938,7 @@ class NodeAuswahlFilterDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.addWidget(scrollArea)
         self.setLayout(layout)
-        self.setMinimumSize(1000,800)
+        self.setMinimumSize(1000,600)
         butt1.clicked.connect(lambda:self.butt1_clicked())
         butt2.clicked.connect(lambda:self.butt2_clicked())
              
