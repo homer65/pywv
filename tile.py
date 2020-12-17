@@ -9,9 +9,10 @@ from xml.dom import minidom
 from urllib import request
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
-from PyQt5.QtWidgets import QWidget,QGridLayout,QMenuBar,QAction,QMainWindow,QSizePolicy,QFormLayout,QGridLayout
-from PyQt5.QtWidgets import QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton,QLabel,QTabWidget,QDialog,QLineEdit
+from PyQt5.QtWidgets import QWidget,QMenuBar,QAction,QMainWindow,QSizePolicy,QFormLayout,QGridLayout
+from PyQt5.QtWidgets import QFileDialog,QHBoxLayout,QVBoxLayout,QPushButton,QLabel,QTabWidget,QDialog,QLineEdit,QScrollArea
 from PyQt5.QtCore import Qt
+from matplotlib.pyplot import grid
 
 def printNextAmenity(lat,lon,zoom,amenities,amenity_typ):
     """ Drucke die nahegelegenen Amenity an """
@@ -176,6 +177,25 @@ def kategorisiereAmenity(config):
                 else:
                     amenity_typen[v] = 1
     return amenity_typen
+
+def kategorisiereNode(config):
+    """
+    Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen getaggten Node
+    Fuer jeden Node Typ wird die Anzahl zurueckgegeben
+    """
+    node_typen = {}
+    xmldoc = minidom.parse(config["osmxml"])
+    itemlist = xmldoc.getElementsByTagName('node')
+    for item in itemlist:
+        tags = item.getElementsByTagName('tag')
+        for tag in tags:
+            k = tag.attributes['k'].value
+            if k in node_typen:
+                anzahl = node_typen[k] + 1
+                node_typen[k] = anzahl
+            else:
+                node_typen[k] = 1
+    return node_typen
 
 def parseNode(config):
     """
@@ -686,7 +706,7 @@ class BildController(QMainWindow):
         if quelle == self.NodeFilerResetAction:
             self.node_typ = None
         if quelle == self.NodeFilterAction:
-            self.nfd = NodeFilterDialog(self.node_typ)   
+            self.nfd = NodeAuswahlFilterDialog(self.config)   
             self.nfd.exec_()
             self.node_typ = self.nfd.getText() 
         if quelle == self.PositionToGPXAction:
@@ -862,6 +882,79 @@ class NodeFilterDialog(QDialog):
         return self.node_typ
     
     
+class NodeAuswahlFilterDialog(QDialog):
+    """ Auswahl Dialog fuer Node Filter - grid Layout"""
+    
+    def __init__(self,config):
+        QDialog.__init__(self)
+        node_typen = kategorisiereNode(config)
+        grid = QGridLayout()
+        keylist = list(node_typen)
+        typen_liste = []
+        for key in keylist:
+            typen_liste.append((key,node_typen[key]))
+        typen_liste.sort()
+        i = 0
+        j = 0
+        for (key,anzahl) in typen_liste:
+            label1 = QLabel(self)
+            label1.setText(str(key))
+            label2 = QLabel(self)
+            label2.setText(str(anzahl))
+            grid.addWidget(label1,i,j)
+            j = j + 1
+            grid.addWidget(label2,i,j) 
+            j = j + 1
+            if j > 7:
+                j = 0
+                i = i + 1
+        j = 0
+        i = i + 1
+        label = QLabel(self)
+        label.setText("Auswahl: ")
+        self.line_edit = QLineEdit()
+        grid.addWidget(label,i,j)
+        j = j + 1
+        grid.addWidget(self.line_edit,i,j)
+        j = j + 1
+        if j > 7:
+            j = 0
+            i = i + 1
+        butt1 = QPushButton(self)
+        butt1.setText("ok")
+        butt2 = QPushButton(self)
+        butt2.setText("cancel")
+        grid.addWidget(butt1,i,j)
+        j = j + 1
+        grid.addWidget(butt2,i,j)
+        j = j + 1
+        if j > 7:
+            j = 0
+            i = i + 1
+        self.setLayout(grid)
+        dialog = QDialog()
+        dialog.setLayout(grid)
+        scrollArea = QScrollArea()    
+        scrollArea.setWidget(dialog)
+        layout = QVBoxLayout(self)
+        layout.addWidget(scrollArea)
+        self.setLayout(layout)
+        self.setMinimumSize(1000,800)
+        butt1.clicked.connect(lambda:self.butt1_clicked())
+        butt2.clicked.connect(lambda:self.butt2_clicked())
+             
+    def butt1_clicked(self):
+        self.node_typ = self.line_edit.text()
+        self.close()
+        
+    def butt2_clicked(self):
+        self.node_typ = None
+        self.close()
+        
+    def getText(self):
+        return self.node_typ
+    
+    
 class AuswahlFilterDialog(QDialog):
     """ Auswahl Dialog fuer Amenity Filter - grid Layout"""
     
@@ -917,7 +1010,6 @@ class AuswahlFilterDialog(QDialog):
              
     def butt1_clicked(self):
         self.amenity_typ = self.line_edit.text()
-        print(self.amenity_typ)
         self.close()
         
     def butt2_clicked(self):
@@ -926,3 +1018,4 @@ class AuswahlFilterDialog(QDialog):
         
     def getText(self):
         return self.amenity_typ
+
