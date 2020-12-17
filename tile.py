@@ -455,9 +455,9 @@ class BildController(QMainWindow):
                     amenityPanel = AmenityPanel(amenity)
                     tab.addTab(amenityPanel,"Amenity")
             cbox.addWidget(tab)
-            self.setGeometry(50,50,800,765)
+            self.setGeometry(50,50,1165,785)
         else:
-            self.setGeometry(50,50,800,765)
+            self.setGeometry(50,50,765,785)
         widget.setLayout(cbox)
         self.setCentralWidget(widget)
         if self.initUICount > 1: self.update()            
@@ -671,3 +671,5 @@ class AmenityPanel(QWidget):
             label2 = QLabel(str(wert))
             layout.addRow(label1,label2)
         self.setLayout(layout)
+        self.setMinimumSize(400,785)
+        self.setSizePolicy(QSizePolicy.Fixed,QSizePolicy.Fixed)
