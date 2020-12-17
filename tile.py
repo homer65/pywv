@@ -57,6 +57,7 @@ def printNextNode(lat,lon,zoom,nodes,node_typ):
                 for key in keylist:
                     wert = node[key]
                     if node_typ in str(wert): ok = True
+                    if node_typ in str(key): ok = True
             if ok:
                 minNode.append(node)
     for node in minNode:
@@ -418,6 +419,7 @@ class BildPanel(QWidget):
                     for key in keylist:
                         wert = node[key]
                         if self.node_typ in str(wert): ok = True
+                        if node_typ in str(key): ok = True
                 # Ist der Node nicht gefiltert und auf dem 3x3 Bild dann zeichne dort eine entsprechende Flagge
                 if 0 < deltax < 765 and 0 < deltay < 765 and ok:                
                     for i in range(0,12):
