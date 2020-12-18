@@ -749,18 +749,25 @@ class BildController(QMainWindow):
             print(self.x+0.5,self.y+0.5,self.zoom)
             (lat,lon) = calculateLatLon(self.x+0.5,self.y+0.5,self.zoom)
             print(lat,lon)
+            print(">>>Vor Amenity")
             # Wenn Amenity vorhanden, dann lade um den neuen Kartenmittelpunkt nach und drcuke die naechstgelegenen
             self.minAmenity = []
             if len(self.amenities) > 0:
                 downloadOSMData(self.x,self.y,self.zoom,self.config)
                 self.amenities = parseAmenity(self.config)
                 self.minAmenity = printNextAmenity(lat,lon,self.zoom,self.amenities,self.amenity_typ)
+            print(">>>Nach Amenity")
             # Wenn Node vorhanden, dann lade um den neuen Kartenmittelpunkt nach und drcuke die naechstgelegenen
+            print(">>>Vor Nodes")
             self.minNode = []
             if len(self.nodes) > 0:
+                print(">>>Vor downloadOSMData")
                 downloadOSMData(self.x,self.y,self.zoom,self.config)
+                print(">>>Vor parseNode")
                 self.nodes = parseNode(self.config)
+                print(">>>Vor printNextNode")
                 self.minNode = printNextNode(lat,lon,self.zoom,self.nodes,self.node_typ)
+            print(">>>Nach Nodes")
         if ev.button() == Qt.RightButton:
             if self.gpxmodus == "addPoint":
                 # Füge den rechts angeklickten Punkt zum GPX Track hinzu
