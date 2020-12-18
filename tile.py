@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import datetime
 from xml.dom import minidom
 from urllib import request
+from operator import itemgetter
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QMenuBar,QAction,QMainWindow,QSizePolicy,QFormLayout,QGridLayout
@@ -899,7 +900,7 @@ class NodeAuswahlFilterDialog(QDialog):
         typen_liste = []
         for key in keylist:
             typen_liste.append((key,node_typen[key]))
-        typen_liste.sort()
+        typen_liste.sort(key=itemgetter(1),reverse=True)
         i = 0
         j = 0
         for (key,anzahl) in typen_liste:
@@ -972,7 +973,7 @@ class AuswahlFilterDialog(QDialog):
         typen_liste = []
         for key in keylist:
             typen_liste.append((key,amenity_typen[key]))
-        typen_liste.sort()
+        typen_liste.sort(key=itemgetter(1),reverse=True)
         i = 0
         j = 0
         for (key,anzahl) in typen_liste:
