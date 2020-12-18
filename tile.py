@@ -18,7 +18,7 @@ def printNextAmenity(lat,lon,zoom,amenities,amenity_typ):
     """ Drucke die nahegelegenen Amenity an """
     print("---------------------------------------------------------------------------- Start Amenities")
     minAmenity = []
-    minAbstand = 0.0001 * (2 ** (18 - zoom))
+    minAbstand = 0.00005 * (2 ** (18 - zoom))
     for amenity in amenities:
         typ = amenity["amenity"]
         alat = amenity["lat"]
@@ -45,7 +45,7 @@ def printNextNode(lat,lon,zoom,nodes,node_typ):
     """ Drucke die nahegelegenen Node an """
     print("---------------------------------------------------------------------------- Start Nodes")
     minNode = []
-    minAbstand = 0.0001 * (2 ** (18 - zoom))
+    minAbstand = 0.00005 * (2 ** (18 - zoom))
     for node in nodes:
         alat = node["lat"]
         alon = node["lon"]
