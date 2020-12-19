@@ -743,6 +743,7 @@ class BildController(QMainWindow):
             self.amenity_typ = self.afd.getText() 
         if quelle == self.NodeFilerResetAction:
             self.node_typ = None
+            self.node_value = None
         if quelle == self.NodeFilter1Action:
             self.node_typ = self.config["node_filter1"]
             self.node_value = None
@@ -922,39 +923,6 @@ class AmenityPanel(QWidget):
         self.setLayout(layout)
         self.setMinimumSize(400,785)
         self.setSizePolicy(QSizePolicy.Fixed,QSizePolicy.Fixed)
-        
-
-#class NodeFilterDialog(QDialog):
-#    """ Eingabe Dialog fuer Node Filter """
-#    
-#    def __init__(self,node_typ):
-#        QDialog.__init__(self)
-#        self.node_typ = node_typ
-#        form = QFormLayout()
-#        lab1 = QLabel(self)
-#        lab1.setText("Filter ")
-#        self.tf1 = QLineEdit()
-#        self.tf1.setText(node_typ)
-#        form.addRow(lab1,self.tf1)
-#        butt1 = QPushButton(self)
-#        butt1.setText("ok")
-#        butt2 = QPushButton(self)
-#        butt2.setText("cancel")
-#        form.addRow(butt1,butt2)
-#        self.setLayout(form)
-#        butt1.clicked.connect(lambda:self.butt1_clicked())
-#        butt2.clicked.connect(lambda:self.butt2_clicked())
-#        
-#    def butt1_clicked(self):
-#        self.node_typ = self.tf1.text()
-#        self.close()
-#        
-#    def butt2_clicked(self):
-#        self.node_typ = None
-#        self.close()
-#        
-#    def getText(self):
-#        return self.node_typ
     
     
 class NodeAuswahlFilterDialog(QDialog):
