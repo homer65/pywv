@@ -964,6 +964,7 @@ class NodeAuswahlFilterDialog(QDialog):
         QDialog.__init__(self)
         self.config = config
         self.node_typ = None
+        self.node_value = None
         node_typen = kategorisiereNode(config)
         grid = QGridLayout()
         keylist = list(node_typen)
