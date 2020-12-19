@@ -963,6 +963,7 @@ class NodeAuswahlFilterDialog(QDialog):
     def __init__(self,config):
         QDialog.__init__(self)
         self.config = config
+        self.node_typ = None
         node_typen = kategorisiereNode(config)
         grid = QGridLayout()
         keylist = list(node_typen)
