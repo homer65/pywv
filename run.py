@@ -41,6 +41,7 @@ def main():
     config["filter8"] = "restaurant"
     config["filter9"] = "charging_station"
     config["filter10"] = "fuel"
+    config["node_filter1"] = "shop"
     # ini Datei wird normalerweise über Argument beim Aufruf angegeben
     # Wenn keine ini Datei im Aufruf angegeben wird nehme run.ini
     if len(sys.argv) > 1:

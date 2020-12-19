@@ -542,6 +542,7 @@ class BildController(QMainWindow):
         self.AuswahlFilterAction = self.filter_menu.addAction("Auswahl Filter")
         self.node_filter_menu = self.menu.addMenu("Node Filter")
         self.NodeFilerResetAction = self.node_filter_menu.addAction("Reset Node Filter")
+        self.NodeFilter1Action = self.node_filter_menu.addAction(self.config["node_filter1"])
         self.NodeFilterAction = self.node_filter_menu.addAction("Setze Node Filter")
         self.gpx_menu = self.menu.addMenu("GPX")
         self.ReadGPXAction = self.gpx_menu.addAction("Read GPX Track")
@@ -705,6 +706,8 @@ class BildController(QMainWindow):
             self.amenity_typ = self.afd.getText() 
         if quelle == self.NodeFilerResetAction:
             self.node_typ = None
+        if quelle == self.NodeFilter1Action:
+            self.node_typ = self.config["node_filter1"]
         if quelle == self.NodeFilterAction:
             self.nfd = NodeAuswahlFilterDialog(self.config)   
             self.nfd.exec_()
