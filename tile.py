@@ -8,6 +8,7 @@ from datetime import datetime
 from xml.dom import minidom
 from urllib import request
 from operator import itemgetter
+from functools import partial
 from PyQt5.QtPrintSupport import QPrinter
 from PyQt5.QtGui import QImage,QPainter,QPixmap,qRgba
 from PyQt5.QtWidgets import QWidget,QMenuBar,QAction,QMainWindow,QSizePolicy,QFormLayout,QGridLayout
@@ -923,37 +924,37 @@ class AmenityPanel(QWidget):
         self.setSizePolicy(QSizePolicy.Fixed,QSizePolicy.Fixed)
         
 
-class NodeFilterDialog(QDialog):
-    """ Eingabe Dialog fuer Node Filter """
-    
-    def __init__(self,node_typ):
-        QDialog.__init__(self)
-        self.node_typ = node_typ
-        form = QFormLayout()
-        lab1 = QLabel(self)
-        lab1.setText("Filter ")
-        self.tf1 = QLineEdit()
-        self.tf1.setText(node_typ)
-        form.addRow(lab1,self.tf1)
-        butt1 = QPushButton(self)
-        butt1.setText("ok")
-        butt2 = QPushButton(self)
-        butt2.setText("cancel")
-        form.addRow(butt1,butt2)
-        self.setLayout(form)
-        butt1.clicked.connect(lambda:self.butt1_clicked())
-        butt2.clicked.connect(lambda:self.butt2_clicked())
-        
-    def butt1_clicked(self):
-        self.node_typ = self.tf1.text()
-        self.close()
-        
-    def butt2_clicked(self):
-        self.node_typ = None
-        self.close()
-        
-    def getText(self):
-        return self.node_typ
+#class NodeFilterDialog(QDialog):
+#    """ Eingabe Dialog fuer Node Filter """
+#    
+#    def __init__(self,node_typ):
+#        QDialog.__init__(self)
+#        self.node_typ = node_typ
+#        form = QFormLayout()
+#        lab1 = QLabel(self)
+#        lab1.setText("Filter ")
+#        self.tf1 = QLineEdit()
+#        self.tf1.setText(node_typ)
+#        form.addRow(lab1,self.tf1)
+#        butt1 = QPushButton(self)
+#        butt1.setText("ok")
+#        butt2 = QPushButton(self)
+#        butt2.setText("cancel")
+#        form.addRow(butt1,butt2)
+#        self.setLayout(form)
+#        butt1.clicked.connect(lambda:self.butt1_clicked())
+#        butt2.clicked.connect(lambda:self.butt2_clicked())
+#        
+#    def butt1_clicked(self):
+#        self.node_typ = self.tf1.text()
+#        self.close()
+#        
+#    def butt2_clicked(self):
+#        self.node_typ = None
+#        self.close()
+#        
+#    def getText(self):
+#        return self.node_typ
     
     
 class NodeAuswahlFilterDialog(QDialog):
@@ -972,17 +973,18 @@ class NodeAuswahlFilterDialog(QDialog):
         i = 0
         j = 0
         for (key,anzahl) in typen_liste:
-            label1 = QLabel(self)
-            label1.setText(str(key))
+            butt = QPushButton(self)
+            butt.setText(str(key))
             label2 = QLabel(self)
             label2.setText(str(anzahl))
-            grid.addWidget(label1,i,j)
+            grid.addWidget(butt,i,j)
             j = j + 1
             grid.addWidget(label2,i,j) 
             j = j + 1
             if j > 7:
                 j = 0
                 i = i + 1
+            butt.clicked.connect(partial(self.butt_clicked, str(key)))
         j = 0
         i = i + 1
         label = QLabel(self)
@@ -1017,6 +1019,9 @@ class NodeAuswahlFilterDialog(QDialog):
         self.setMinimumSize(1000,600)
         butt1.clicked.connect(lambda:self.butt1_clicked())
         butt2.clicked.connect(lambda:self.butt2_clicked())
+
+    def butt_clicked(self,key):
+        self.line_edit.setText(key)
              
     def butt1_clicked(self):
         self.node_typ = self.line_edit.text()
@@ -1048,17 +1053,18 @@ class AuswahlFilterDialog(QDialog):
         i = 0
         j = 0
         for (key,anzahl) in typen_liste:
-            label1 = QLabel(self)
-            label1.setText(str(key))
+            butt = QPushButton(self)
+            butt.setText(str(key))
             label2 = QLabel(self)
             label2.setText(str(anzahl))
-            grid.addWidget(label1,i,j)
+            grid.addWidget(butt,i,j)
             j = j + 1
             grid.addWidget(label2,i,j) 
             j = j + 1
             if j > 3:
                 j = 0
                 i = i + 1
+            butt.clicked.connect(partial(self.butt_clicked, str(key)))
         j = 0
         i = i + 1
         label = QLabel(self)
@@ -1085,7 +1091,10 @@ class AuswahlFilterDialog(QDialog):
         self.setLayout(grid)
         butt1.clicked.connect(lambda:self.butt1_clicked())
         butt2.clicked.connect(lambda:self.butt2_clicked())
-             
+
+    def butt_clicked(self,key):
+        self.line_edit.setText(key)
+           
     def butt1_clicked(self):
         self.amenity_typ = self.line_edit.text()
         self.close()
@@ -1114,17 +1123,19 @@ class NodeValueFilterDialog(QDialog):
         i = 0
         j = 0
         for (key,anzahl) in value_liste:
-            label1 = QLabel(self)
-            label1.setText(str(key))
+            butt = QPushButton(self)
+            butt.setText(str(key))
+            butt.setObjectName(str(key))
             label2 = QLabel(self)
             label2.setText(str(anzahl))
-            grid.addWidget(label1,i,j)
+            grid.addWidget(butt,i,j)
             j = j + 1
             grid.addWidget(label2,i,j) 
             j = j + 1
             if j > 3:
                 j = 0
                 i = i + 1
+            butt.clicked.connect(partial(self.butt_clicked, str(key)))
         j = 0
         i = i + 1
         label = QLabel(self)
@@ -1151,7 +1162,10 @@ class NodeValueFilterDialog(QDialog):
         self.setLayout(grid)
         butt1.clicked.connect(lambda:self.butt1_clicked())
         butt2.clicked.connect(lambda:self.butt2_clicked())
-             
+           
+    def butt_clicked(self,key):
+        self.line_edit.setText(key)
+  
     def butt1_clicked(self):
         self.node_value = self.line_edit.text()
         self.close()
