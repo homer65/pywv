@@ -41,7 +41,7 @@ def printNextAmenity(lat,lon,zoom,amenities,amenity_typ):
     print("---------------------------------------------------------------------------- End Amenities")
     return minAmenity
 
-def printNextNode(lat,lon,zoom,nodes,node_typ):
+def printNextNode(lat,lon,zoom,nodes,node_typ,node_value):
     """ Drucke die nahegelegenen Node an """
     print("---------------------------------------------------------------------------- Start Nodes")
     minNode = []
@@ -56,9 +56,11 @@ def printNextNode(lat,lon,zoom,nodes,node_typ):
             else:
                 keylist = list(node)
                 for key in keylist:
-                    wert = node[key]
-                    if node_typ in str(wert): ok = True
-                    if node_typ in str(key): ok = True
+                    if node_typ in str(key):
+                        if node_value == None: ok = True
+                        else: 
+                            wert = node[key]
+                            if node_value in wert: ok = True
             if ok:
                 minNode.append(node)
     for node in minNode:
@@ -196,6 +198,27 @@ def kategorisiereNode(config):
             else:
                 node_typen[k] = 1
     return node_typen
+
+def kategorisiereNodeValue(config,node_typ):
+    """
+    Parse OpenStreetMap XML Daten und extrahiere alle dort eingetragenen getaggten Node Value eines bestimmten Typ
+    Fuer jeden Node Value wird die Anzahl zurueckgegeben
+    """
+    node_values = {}
+    xmldoc = minidom.parse(config["osmxml"])
+    itemlist = xmldoc.getElementsByTagName('node')
+    for item in itemlist:
+        tags = item.getElementsByTagName('tag')
+        for tag in tags:
+            k = tag.attributes['k'].value
+            v = tag.attributes['v'].value
+            if node_typ in str(k):
+                if v in node_values:
+                    anzahl = node_values[v] + 1
+                    node_values[v] = anzahl
+                else:
+                    node_values[v] = 1
+    return node_values
 
 def parseNode(config):
     """
@@ -340,7 +363,7 @@ class TilePanel(QWidget):
 class BildPanel(QWidget):
     """ Baut das anzuzeigende Bild auf """
     
-    def __init__(self,x,y,zoom,config,gpxtrackpoint,amenities,amenity_typ,nodes,node_typ):
+    def __init__(self,x,y,zoom,config,gpxtrackpoint,amenities,amenity_typ,nodes,node_typ,node_value):
         self.x = x # X Koordinate
         self.y = y # Y Koordinate
         self.zoom = zoom # Zoom stufe
@@ -349,6 +372,7 @@ class BildPanel(QWidget):
         self.amenity_typ = amenity_typ
         self.nodes = nodes
         self.node_typ = node_typ
+        self.node_value = node_value
         flagge = QImage("flagge.png") # Bild um Amenity anzuzeigen
         node_flagge = QImage("node.png") # Bild um Node anzuzeigen
         # Teile Koordinaten in Ganzahl Anteil und Nachkomma Stellen
@@ -459,9 +483,11 @@ class BildPanel(QWidget):
                 else:
                     keylist = list(node)
                     for key in keylist:
-                        wert = node[key]
-                        if self.node_typ in str(wert): ok = True
-                        if node_typ in str(key): ok = True
+                        if self.node_typ in str(key):
+                            if self.node_value == None: ok = True
+                            else: 
+                                wert = node[key]
+                                if self.node_value in str(wert): ok = True
                 # Ist der Node nicht gefiltert und auf dem 3x3 Bild dann zeichne dort eine entsprechende Flagge
                 if 0 < deltax < 765 and 0 < deltay < 765 and ok:                
                     for i in range(0,12):
@@ -505,7 +531,8 @@ class BildController(QMainWindow):
         self.amenity_typ = None # Filter welche Amenity angezeigt werden       
         self.minNode = [] # Node nahe Kartenmittelpunkt
         self.nodes = [] # In OpenStreetMap eingetragene Nodes, die getagged sind
-        self.node_typ = None # Filter welche Node angezeigt werden        
+        self.node_typ = None # Filter welche Node angezeigt werden   
+        self.node_value = None # Filer welche Node angezeigt werden     
         self.gpxmodus = "normal"
         self.gpxDeletePoint1 = (0.0,0.0) # Ecke eines Rechtecks
         self.gpxDeletePoint2 = (0.0,0.0) # Gegenüberliegende Ecke des Rechtecks
@@ -547,6 +574,11 @@ class BildController(QMainWindow):
         self.NodeFilter3Action = self.node_filter_menu.addAction(self.config["node_filter3"])
         self.NodeFilter4Action = self.node_filter_menu.addAction(self.config["node_filter4"])
         self.NodeFilter5Action = self.node_filter_menu.addAction(self.config["node_filter5"])
+        self.NodeFilter6Action = self.node_filter_menu.addAction(self.config["node_filter6"])
+        self.NodeFilter7Action = self.node_filter_menu.addAction(self.config["node_filter7"])
+        self.NodeFilter8Action = self.node_filter_menu.addAction(self.config["node_filter8"])
+        self.NodeFilter9Action = self.node_filter_menu.addAction(self.config["node_filter9"])
+        self.NodeFilter10Action = self.node_filter_menu.addAction(self.config["node_filter10"])
         self.NodeFilterAction = self.node_filter_menu.addAction("Setze Node Filter")
         self.gpx_menu = self.menu.addMenu("GPX")
         self.ReadGPXAction = self.gpx_menu.addAction("Read GPX Track")
@@ -562,7 +594,7 @@ class BildController(QMainWindow):
     
     def initUI(self):
         self.initUICount = self.initUICount + 1
-        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ,self.nodes,self.node_typ)
+        self.bild = BildPanel(self.x,self.y,self.zoom,self.config,self.gpxtrackpoint,self.amenities,self.amenity_typ,self.nodes,self.node_typ,self.node_value)
         self.bild.addMouseListener(self)
         widget = QWidget()
         vbox = QVBoxLayout()
@@ -575,7 +607,7 @@ class BildController(QMainWindow):
         flon = math.trunc(100000.0 * lon) / 100000.0
         fx = math.trunc(1000.0 * (self.x + 0.5)) / 1000.0
         fy = math.trunc(1000.0 * (self.y + 0.5)) / 1000.0
-        info = str(self.amenity_typ) + " / " + str(self.node_typ) + " / " + str(flat) + " : " + str(flon) + " # " + str(fx) + " : " + str(fy)  + " :: " + str(self.zoom)
+        info = str(self.amenity_typ) + " / " + str(self.node_typ) + ":" + str(self.node_value) + " / " + str(flat) + " : " + str(flon) + " # " + str(fx) + " : " + str(fy)  + " :: " + str(self.zoom)
         self.lab1 = QLabel(info);
         self.butt1.clicked.connect(lambda:self.triggered(self.butt1))
         self.butt2.clicked.connect(lambda:self.triggered(self.butt2))
@@ -712,19 +744,38 @@ class BildController(QMainWindow):
             self.node_typ = None
         if quelle == self.NodeFilter1Action:
             self.node_typ = self.config["node_filter1"]
+            self.node_value = None
         if quelle == self.NodeFilter2Action:
             self.node_typ = self.config["node_filter2"]
+            self.node_value = None
         if quelle == self.NodeFilter3Action:
             self.node_typ = self.config["node_filter3"]
+            self.node_value = None
         if quelle == self.NodeFilter4Action:
             self.node_typ = self.config["node_filter4"]
+            self.node_value = None
         if quelle == self.NodeFilter5Action:
-            self.node_typ = self.config["node_filter5"]            
-
+            self.node_typ = self.config["node_filter5"] 
+            self.node_value = None  
+        if quelle == self.NodeFilter6Action:
+            self.node_typ = self.config["node_filter6"]
+            self.node_value = None
+        if quelle == self.NodeFilter7Action:
+            self.node_typ = self.config["node_filter7"]
+            self.node_value = None
+        if quelle == self.NodeFilter8Action:
+            self.node_typ = self.config["node_filter8"]
+            self.node_value = None
+        if quelle == self.NodeFilter9Action:
+            self.node_typ = self.config["node_filter9"]
+            self.node_value = None
+        if quelle == self.NodeFilter10Action:
+            self.node_typ = self.config["node_filter10"]
+            self.node_value = None           
         if quelle == self.NodeFilterAction:
             self.nfd = NodeAuswahlFilterDialog(self.config)   
             self.nfd.exec_()
-            self.node_typ = self.nfd.getText() 
+            (self.node_typ,self.node_value) = self.nfd.getTexte() 
         if quelle == self.PositionToGPXAction:
             # Positioniere die Karte so, das íhr Mittelpunkt mit dem Mittelpunkt des GPX Track übereinstimmt
             if len(self.gpxtrackpoint) > 0:
@@ -783,7 +834,7 @@ class BildController(QMainWindow):
                 print(">>>Vor parseNode")
                 self.nodes = parseNode(self.config)
                 print(">>>Vor printNextNode")
-                self.minNode = printNextNode(lat,lon,self.zoom,self.nodes,self.node_typ)
+                self.minNode = printNextNode(lat,lon,self.zoom,self.nodes,self.node_typ,self.node_value)
             print(">>>Nach Nodes")
         if ev.button() == Qt.RightButton:
             if self.gpxmodus == "addPoint":
@@ -910,13 +961,14 @@ class NodeAuswahlFilterDialog(QDialog):
     
     def __init__(self,config):
         QDialog.__init__(self)
+        self.config = config
         node_typen = kategorisiereNode(config)
         grid = QGridLayout()
         keylist = list(node_typen)
         typen_liste = []
         for key in keylist:
             typen_liste.append((key,node_typen[key]))
-        typen_liste.sort(key=itemgetter(1),reverse=True)
+        typen_liste.sort()
         i = 0
         j = 0
         for (key,anzahl) in typen_liste:
@@ -968,14 +1020,17 @@ class NodeAuswahlFilterDialog(QDialog):
              
     def butt1_clicked(self):
         self.node_typ = self.line_edit.text()
+        self.nvfd = NodeValueFilterDialog(self.config,self.node_typ)   
+        self.nvfd.exec_()
+        self.node_value = self.nvfd.getText() 
         self.close()
         
     def butt2_clicked(self):
         self.node_typ = None
         self.close()
         
-    def getText(self):
-        return self.node_typ
+    def getTexte(self):
+        return (self.node_typ,self.node_value)
     
     
 class AuswahlFilterDialog(QDialog):
@@ -1041,4 +1096,70 @@ class AuswahlFilterDialog(QDialog):
         
     def getText(self):
         return self.amenity_typ
+
+
+
+class NodeValueFilterDialog(QDialog):
+    """ Auswahl Dialog fuer Node Value - grid Layout"""
+    
+    def __init__(self,config,node_typ):
+        QDialog.__init__(self)
+        node_values = kategorisiereNodeValue(config,node_typ)
+        grid = QGridLayout()
+        keylist = list(node_values)
+        value_liste = []
+        for key in keylist:
+            value_liste.append((key,node_values[key]))
+        value_liste.sort(key=itemgetter(1),reverse=True)
+        i = 0
+        j = 0
+        for (key,anzahl) in value_liste:
+            label1 = QLabel(self)
+            label1.setText(str(key))
+            label2 = QLabel(self)
+            label2.setText(str(anzahl))
+            grid.addWidget(label1,i,j)
+            j = j + 1
+            grid.addWidget(label2,i,j) 
+            j = j + 1
+            if j > 3:
+                j = 0
+                i = i + 1
+        j = 0
+        i = i + 1
+        label = QLabel(self)
+        label.setText("Auswahl: ")
+        self.line_edit = QLineEdit()
+        grid.addWidget(label,i,j)
+        j = j + 1
+        grid.addWidget(self.line_edit,i,j)
+        j = j + 1
+        if j > 3:
+            j = 0
+            i = i + 1
+        butt1 = QPushButton(self)
+        butt1.setText("ok")
+        butt2 = QPushButton(self)
+        butt2.setText("cancel")
+        grid.addWidget(butt1,i,j)
+        j = j + 1
+        grid.addWidget(butt2,i,j)
+        j = j + 1
+        if j > 3:
+            j = 0
+            i = i + 1
+        self.setLayout(grid)
+        butt1.clicked.connect(lambda:self.butt1_clicked())
+        butt2.clicked.connect(lambda:self.butt2_clicked())
+             
+    def butt1_clicked(self):
+        self.node_value = self.line_edit.text()
+        self.close()
+        
+    def butt2_clicked(self):
+        self.node_value = None
+        self.close()
+        
+    def getText(self):
+        return self.node_value
 

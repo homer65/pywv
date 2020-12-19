@@ -46,6 +46,11 @@ def main():
     config["node_filter3"] = "place"
     config["node_filter4"] = "operator"
     config["node_filter5"] = "public_transport"
+    config["node_filter6"] = "wheelchair"
+    config["node_filter7"] = "website"
+    config["node_filter8"] = "office"
+    config["node_filter9"] = "tourism"
+    config["node_filter10"] = "brand"
     # ini Datei wird normalerweise über Argument beim Aufruf angegeben
     # Wenn keine ini Datei im Aufruf angegeben wird nehme run.ini
     if len(sys.argv) > 1:
