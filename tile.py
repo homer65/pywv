@@ -543,6 +543,10 @@ class BildController(QMainWindow):
         self.node_filter_menu = self.menu.addMenu("Node Filter")
         self.NodeFilerResetAction = self.node_filter_menu.addAction("Reset Node Filter")
         self.NodeFilter1Action = self.node_filter_menu.addAction(self.config["node_filter1"])
+        self.NodeFilter2Action = self.node_filter_menu.addAction(self.config["node_filter2"])
+        self.NodeFilter3Action = self.node_filter_menu.addAction(self.config["node_filter3"])
+        self.NodeFilter4Action = self.node_filter_menu.addAction(self.config["node_filter4"])
+        self.NodeFilter5Action = self.node_filter_menu.addAction(self.config["node_filter5"])
         self.NodeFilterAction = self.node_filter_menu.addAction("Setze Node Filter")
         self.gpx_menu = self.menu.addMenu("GPX")
         self.ReadGPXAction = self.gpx_menu.addAction("Read GPX Track")
@@ -708,6 +712,15 @@ class BildController(QMainWindow):
             self.node_typ = None
         if quelle == self.NodeFilter1Action:
             self.node_typ = self.config["node_filter1"]
+        if quelle == self.NodeFilter2Action:
+            self.node_typ = self.config["node_filter2"]
+        if quelle == self.NodeFilter3Action:
+            self.node_typ = self.config["node_filter3"]
+        if quelle == self.NodeFilter4Action:
+            self.node_typ = self.config["node_filter4"]
+        if quelle == self.NodeFilter5Action:
+            self.node_typ = self.config["node_filter5"]            
+
         if quelle == self.NodeFilterAction:
             self.nfd = NodeAuswahlFilterDialog(self.config)   
             self.nfd.exec_()
