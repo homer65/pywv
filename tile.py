@@ -945,7 +945,9 @@ class NodeAuswahlFilterDialog(QDialog):
         j = 0
         for (key,anzahl) in typen_liste:
             butt = QPushButton(self)
-            butt.setText(str(key))
+            skey = str(key)
+            if len(skey) > 45: skey = skey[0:45]
+            butt.setText(skey)
             label2 = QLabel(self)
             label2.setText(str(anzahl))
             grid.addWidget(butt,i,j)
@@ -1083,7 +1085,9 @@ class NodeValueFilterDialog(QDialog):
         j = 0
         for (key,anzahl) in value_liste:
             butt = QPushButton(self)
-            butt.setText(str(key))
+            skey = str(key)
+            if len(skey) > 45: skey = skey[0:45]
+            butt.setText(skey)
             butt.setObjectName(str(key))
             label2 = QLabel(self)
             label2.setText(str(anzahl))

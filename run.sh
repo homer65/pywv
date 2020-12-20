@@ -1,5 +1,5 @@
 #!/bin/bash
 #
 python3 run.py runLinux.ini
-read -1
+read -n 1
 exit
