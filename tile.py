@@ -933,6 +933,7 @@ class NodeAuswahlFilterDialog(QDialog):
         self.config = config
         self.node_typ = None
         self.node_value = None
+        hbox = QHBoxLayout()
         node_typen = kategorisiereNode(config)
         grid = QGridLayout()
         keylist = list(node_typen)
@@ -951,42 +952,30 @@ class NodeAuswahlFilterDialog(QDialog):
             j = j + 1
             grid.addWidget(label2,i,j) 
             j = j + 1
-            if j > 7:
+            if j > 5:
                 j = 0
                 i = i + 1
             butt.clicked.connect(partial(self.butt_clicked, str(key)))
-        j = 0
-        i = i + 1
         label = QLabel(self)
         label.setText("Auswahl: ")
         self.line_edit = QLineEdit()
-        grid.addWidget(label,i,j)
-        j = j + 1
-        grid.addWidget(self.line_edit,i,j)
-        j = j + 1
-        if j > 7:
-            j = 0
-            i = i + 1
+        hbox.addWidget(label)
+        hbox.addWidget(self.line_edit)
         butt1 = QPushButton(self)
         butt1.setText("ok")
         butt2 = QPushButton(self)
         butt2.setText("cancel")
-        grid.addWidget(butt1,i,j)
-        j = j + 1
-        grid.addWidget(butt2,i,j)
-        j = j + 1
-        if j > 7:
-            j = 0
-            i = i + 1
-        self.setLayout(grid)
+        hbox.addWidget(butt1)
+        hbox.addWidget(butt2)
         dialog = QDialog()
         dialog.setLayout(grid)
         scrollArea = QScrollArea()    
         scrollArea.setWidget(dialog)
         layout = QVBoxLayout(self)
         layout.addWidget(scrollArea)
+        layout.addLayout(hbox)
         self.setLayout(layout)
-        self.setMinimumSize(1000,600)
+        self.setMinimumSize(900,600)
         butt1.clicked.connect(lambda:self.butt1_clicked())
         butt2.clicked.connect(lambda:self.butt2_clicked())
 
@@ -1013,6 +1002,8 @@ class AuswahlFilterDialog(QDialog):
     
     def __init__(self,config):
         QDialog.__init__(self)
+        self.amenity_typ = None
+        hbox = QHBoxLayout()
         amenity_typen = kategorisiereAmenity(config)
         grid = QGridLayout()
         keylist = list(amenity_typen)
@@ -1031,34 +1022,30 @@ class AuswahlFilterDialog(QDialog):
             j = j + 1
             grid.addWidget(label2,i,j) 
             j = j + 1
-            if j > 3:
+            if j > 5:
                 j = 0
                 i = i + 1
             butt.clicked.connect(partial(self.butt_clicked, str(key)))
-        j = 0
-        i = i + 1
         label = QLabel(self)
         label.setText("Auswahl: ")
         self.line_edit = QLineEdit()
-        grid.addWidget(label,i,j)
-        j = j + 1
-        grid.addWidget(self.line_edit,i,j)
-        j = j + 1
-        if j > 3:
-            j = 0
-            i = i + 1
+        hbox.addWidget(label)
+        hbox.addWidget(self.line_edit)
         butt1 = QPushButton(self)
         butt1.setText("ok")
         butt2 = QPushButton(self)
         butt2.setText("cancel")
-        grid.addWidget(butt1,i,j)
-        j = j + 1
-        grid.addWidget(butt2,i,j)
-        j = j + 1
-        if j > 3:
-            j = 0
-            i = i + 1
-        self.setLayout(grid)
+        hbox.addWidget(butt1)
+        hbox.addWidget(butt2)
+        dialog = QDialog()
+        dialog.setLayout(grid)
+        scrollArea = QScrollArea()    
+        scrollArea.setWidget(dialog)
+        layout = QVBoxLayout(self)
+        layout.addWidget(scrollArea)
+        layout.addLayout(hbox)
+        self.setLayout(layout)
+        self.setMinimumSize(900,600)
         butt1.clicked.connect(lambda:self.butt1_clicked())
         butt2.clicked.connect(lambda:self.butt2_clicked())
 
@@ -1083,6 +1070,8 @@ class NodeValueFilterDialog(QDialog):
     
     def __init__(self,config,node_typ):
         QDialog.__init__(self)
+        self.node_value = None
+        hbox = QHBoxLayout()
         node_values = kategorisiereNodeValue(config,node_typ)
         grid = QGridLayout()
         keylist = list(node_values)
@@ -1102,34 +1091,30 @@ class NodeValueFilterDialog(QDialog):
             j = j + 1
             grid.addWidget(label2,i,j) 
             j = j + 1
-            if j > 3:
+            if j > 5:
                 j = 0
                 i = i + 1
             butt.clicked.connect(partial(self.butt_clicked, str(key)))
-        j = 0
-        i = i + 1
         label = QLabel(self)
         label.setText("Auswahl: ")
         self.line_edit = QLineEdit()
-        grid.addWidget(label,i,j)
-        j = j + 1
-        grid.addWidget(self.line_edit,i,j)
-        j = j + 1
-        if j > 3:
-            j = 0
-            i = i + 1
+        hbox.addWidget(label)
+        hbox.addWidget(self.line_edit)
         butt1 = QPushButton(self)
         butt1.setText("ok")
         butt2 = QPushButton(self)
         butt2.setText("cancel")
-        grid.addWidget(butt1,i,j)
-        j = j + 1
-        grid.addWidget(butt2,i,j)
-        j = j + 1
-        if j > 3:
-            j = 0
-            i = i + 1
-        self.setLayout(grid)
+        hbox.addWidget(butt1)
+        hbox.addWidget(butt2)
+        dialog = QDialog()
+        dialog.setLayout(grid)
+        scrollArea = QScrollArea()    
+        scrollArea.setWidget(dialog)
+        layout = QVBoxLayout(self)
+        layout.addWidget(scrollArea)
+        layout.addLayout(hbox)
+        self.setLayout(layout)
+        self.setMinimumSize(900,600)
         butt1.clicked.connect(lambda:self.butt1_clicked())
         butt2.clicked.connect(lambda:self.butt2_clicked())
            
