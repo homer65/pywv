@@ -303,10 +303,12 @@ def downloadOSMData(x,y,zoom,config):
         f.write(inhalt)
     
 def downloadTile(x,y,zoom,config):
-    """ Lese eine Kachel von Thunderforest oder OpenStreetMap und speichere diese im Tile Cache Directory """
+    """ Lese eine Kachel von Thunderforest oder OpenStreetMap oder Google und speichere diese im Tile Cache Directory """
     sUrl = "https://tile.thunderforest.com/cycle/"+zoom+"/"+y+"/"+x+".png?apikey="+config["apiKey"]
     if config["tileserver"] == "openstreetmap":
         sUrl = "https://a.tile.openstreetmap.de/"+zoom+"/"+y+"/"+x+".png"
+    if config["tileserver"] == "google":
+        sUrl = "https://mt1.google.com/vt/lyrs=y&x="+y+"&y="+x+"&z="+zoom
     rc = request.urlopen(sUrl)
     if not rc.code == 200: print("downloadTile: Http Response Code: ", rc.code)
     inhalt = rc.read()
