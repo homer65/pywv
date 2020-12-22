@@ -292,10 +292,10 @@ def downloadOSMData(x,y,zoom,config):
     latlon = calculateLatLon(x+0.5,y+0.5,zoom)
     lat = latlon[0]
     lon = latlon[1]
-    minlat = str(lat - 0.003)
-    minlon = str(lon - 0.003) 
-    maxlat = str(lat + 0.003)
-    maxlon = str(lon + 0.003)
+    minlat = str(lat - 0.005)
+    minlon = str(lon - 0.005) 
+    maxlat = str(lat + 0.005)
+    maxlon = str(lon + 0.005)
     sUrl = "https://api.openstreetmap.org/api/0.6/map?bbox="+minlon+","+minlat+","+maxlon+","+maxlat
     rc = request.urlopen(sUrl)
     inhalt = rc.read()
