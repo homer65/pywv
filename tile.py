@@ -307,8 +307,8 @@ def downloadTile(x,y,zoom,config):
     sUrl = "https://tile.thunderforest.com/cycle/"+zoom+"/"+y+"/"+x+".png?apikey="+config["apiKey"]
     if config["tileserver"] == "openstreetmap":
         sUrl = "https://a.tile.openstreetmap.de/"+zoom+"/"+y+"/"+x+".png"
-    if config["tileserver"] == "google":
-        sUrl = "https://mt1.google.com/vt/lyrs=y&x="+y+"&y="+x+"&z="+zoom
+    #if config["tileserver"] == "google":
+    #    sUrl = "https://mt1.google.com/vt/lyrs=y&x="+y+"&y="+x+"&z="+zoom
     rc = request.urlopen(sUrl)
     if not rc.code == 200: print("downloadTile: Http Response Code: ", rc.code)
     inhalt = rc.read()
