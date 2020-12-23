@@ -3,6 +3,8 @@ import os
 import sys
 import math
 import platform
+from lxml import etree
+from lxml.builder import ElementMaker
 from pathlib import Path
 from datetime import datetime
 from xml.dom import minidom
@@ -101,37 +103,37 @@ def readGPX():
             print(sys.exc_info()[0])
             print(sys.exc_info()[1])
     return gpxtrackpoint
-        
+     
 def saveGPX(gpxtrackpoint):
-    """ Speichere die Trackpoints in Datei (GPX Track) """
-    gpxdoc = "<?xml version='1.0' encoding='UTF-8'?>" + "\n"
-    gpxdoc += "<gpx version=\"1.1\" creator=\"http://www.myoggradio.org\"" + "\n"
-    gpxdoc += "xmlns=\"http://www.topografix.com/GPX/1/1\"" + "\n"
-    gpxdoc += "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" + "\n"
-    gpxdoc += "xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1" + "\n"
-    gpxdoc += "http://www.topografix.com/GPX/1/1/gpx.xsd\">" + "\n"
-    gpxdoc += " <metadata>" + "\n"
-    gpxdoc += "  <name>Ein GPX Track pywv Pre Alpha Test</name>" + "\n"
-    gpxdoc += " </metadata>" + "\n"
-    gpxdoc += " <trk>" + "\n"
-    gpxdoc += "  <trkseg>" + "\n"
-    for (flat,flon,ele,tim) in gpxtrackpoint:
-        lat = str(flat)
-        lon = str(flon)
-        gpxdoc += "   <trkpt lat=\"" + lat + "\" lon=\"" + lon + "\">" + "\n"
-        gpxdoc += "    <ele>" + ele + "</ele>" + "\n"
-        gpxdoc += "    <time>" + tim + "</time>" + "\n"
-        gpxdoc += "   </trkpt>" + "\n"
-    gpxdoc += "  </trkseg>" + "\n"
-    gpxdoc += " </trk>" + "\n"
-    gpxdoc += "</gpx>" + "\n"
+    """ Speicher die Trackpoints in Datei (GPX Track) """
+    GPX_NS = "http://www.topografix.com/GPX/1/1"
+    E = ElementMaker(namespace=GPX_NS, nsmap={None: GPX_NS})
+    root = E.gpx(version="1.1", creator="http://www.myoggradio.org")
+    root.set("{http://www.w3.org/2001/XMLSchema-instance}schemaLocation", f"{GPX_NS} http://www.topografix.com/GPX/1/1/gpx.xsd")
+    root.append(E.metadata(E.name("Ein GPX Track pywv Alpha Test")))
+    trk = etree.Element("trk")
+    root.append(trk)
+    trkseg = etree.Element("trkseg")
+    trk.append(trkseg)
+    for (flat,flon,elevation,zeit) in gpxtrackpoint:
+        trkpt = etree.Element("trkpt")
+        trkpt.set("lat",str(flat))
+        trkpt.set("lon",str(flon))
+        ele = etree.Element("ele")
+        ele.text = elevation
+        trkpt.append(ele)
+        tim = etree.Element("tim")
+        tim.text=zeit
+        trkpt.append(tim)
+        trkseg.append(trkpt)
+    gpxdoc = etree.tostring(root,encoding="UTF-8",pretty_print=True)
     dlg = QFileDialog()
     dlg.setFileMode(QFileDialog.AnyFile)
     if dlg.exec_():
         filenames = dlg.selectedFiles()
         try:
             for file in filenames:
-                with open(file,"w") as datei:
+                with open(file,"wb") as datei:
                     datei.write(gpxdoc)
         except:
             print(sys.exc_info()[0])
