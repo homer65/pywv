@@ -311,12 +311,16 @@ def downloadTile(x,y,zoom,config):
         sUrl = "https://a.tile.openstreetmap.de/"+zoom+"/"+y+"/"+x+".png"
     #if config["tileserver"] == "google":
     #    sUrl = "https://mt1.google.com/vt/lyrs=y&x="+y+"&y="+x+"&z="+zoom
-    rc = request.urlopen(sUrl)
-    if not rc.code == 200: print("downloadTile: Http Response Code: ", rc.code)
-    inhalt = rc.read()
-    tileFileName = os.path.join(config["tileCache"],"tile."+x+"."+y+"."+zoom+".png")
-    with open(tileFileName,"wb") as f:
-        f.write(inhalt)
+    try:
+        rc = request.urlopen(sUrl)
+        if not rc.code == 200: print("downloadTile: Http Response Code: ", rc.code)
+        inhalt = rc.read()
+        tileFileName = os.path.join(config["tileCache"],"tile."+x+"."+y+"."+zoom+".png")
+        with open(tileFileName,"wb") as f:
+            f.write(inhalt)
+    except:
+        print(sys.exc_info()[0])
+        print(sys.exc_info()[1])
       
 def get_tile(x, y, zoom, config):
     """ Lese ein Thunderforest/Openstreetmap Kachel """
